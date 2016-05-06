@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:emojicon="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:paddingStart="@dimen/activity_horizontal_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingEnd="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="8dp"
+    android:paddingBottom="8dp"
+    android:layout_height="match_parent"
+    android:id="@+id/fragmentNewProfile">
+
+    <!--TODO: Remove hard-coded strings-->
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:orientation="horizontal"
+        android:weightSum="10">
+
+        <com.rockerhieu.emojicon.EmojiconTextView
+            android:id="@+id/fragmentNewProfileSelectProfileEmojiTextView"
+            android:text=""
+            android:textSize="24sp"
+            android:textStyle="bold"
+            emojicon:emojiconAlignment="baseline"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_weight="6"
+            android:padding="8dp"
+            android:gravity="center_horizontal"/>
+
+        <android.support.v7.widget.AppCompatButton
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Select Profile Emoji"
+            android:layout_weight="4"
+            android:gravity="center"
+            android:layout_gravity="center_horizontal"
+            android:id="@+id/fragmentNewProfileSelectProfileEmojiButton"/>
+
+    </LinearLayout>
+
+    <ViewFlipper
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/newProfileViewFlipper">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <android.support.design.widget.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+                <android.support.v7.widget.AppCompatEditText
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Enter username"
+                    android:id="@+id/fragmentNewProfileUserNameEditText"/>
+            </android.support.design.widget.TextInputLayout>
+
+            <android.support.design.widget.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+                <android.support.v7.widget.AppCompatEditText
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Enter status"
+                    android:id="@+id/fragmentNewProfileStatusEditText"/>
+            </android.support.design.widget.TextInputLayout>
+
+            <android.support.v7.widget.AppCompatButton
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Save"
+                android:id="@+id/newProfileSaveButton"/>
+
+        </LinearLayout>
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/fragmentNewProfileEmojiFrameLayout"/>
+
+    </ViewFlipper>
+
+</LinearLayout>
