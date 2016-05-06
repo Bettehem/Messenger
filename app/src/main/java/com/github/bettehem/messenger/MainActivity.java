@@ -17,6 +17,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.RelativeLayout;
 import android.widget.ViewFlipper;
 
 import com.github.bettehem.androidtools.Preferences;
@@ -47,14 +48,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public static final int MAIN_FRAGMENT = 1;
 
     public static Toolbar toolbar;
-    private FloatingActionButton newChatButton;
+    public static FloatingActionButton newChatButton;
     private RecyclerView chatsRecyclerView;
     private ArrayList<ChatItem> chatItems = new ArrayList<ChatItem>();
     public static FragmentManager fragmentManager;
     public static Fragment currentFragment;
     public static ViewFlipper mainViewFlipper;
-    private ChatsRecyclerAdapter chatsRecyclerAdapter;
+    public static ChatsRecyclerAdapter chatsRecyclerAdapter;
     public static ChatRequestListener chatRequestListener;
+    public static RelativeLayout mainRelativeLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,6 +77,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         recyclers();
         viewFlippers();
         listeners();
+        layouts();
     }
 
     private void toolbars(){
@@ -124,6 +127,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         chatRequestListener = this;
         ProfileManager.setProfileListener(this);
         RequestResponse.setRequestListener(this);
+    }
+
+    private void layouts(){
+        mainRelativeLayout = (RelativeLayout) findViewById(R.id.mainVewRelativeLayout);
     }
 
     @Override
@@ -322,14 +329,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             ChatsManager.startChat(this, responseInfo.correctPassword, responseInfo.username, R.id.mainFrameLayout, getSupportFragmentManager());
 
         }else{
-
+            //TODO: Request rejected
         }
     }
 
     @Override
     public void onItemClicked(View v, int position) {
         newChatButton.hide();
-        ChatsManager.openChatScreen(this, v.getTag().toString(), Preferences.loadString(this, "status", v.getTag().toString()), R.id.mainFrameLayout, getSupportFragmentManager());
+        String status = Preferences.loadString(this, "chatStatus", v.getTag().toString());
+        ChatsManager.openChatScreen(this, v.getTag().toString(), status, R.id.mainFrameLayout, getSupportFragmentManager());
     }
 
     @Override

@@ -2,6 +2,7 @@ package com.github.bettehem.messenger.gcm;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.Looper;
 
 import com.github.bettehem.androidtools.notification.CustomNotification;
@@ -55,10 +56,18 @@ public class MessengerGcmListenerServiceGcm extends GcmListenerService implement
                     break;
 
                 case "startchat":
-                    String chatStartSender = getSender(data.getString("sender"));
+                    final String chatStartSender = getSender(data.getString("sender"));
                     boolean correctPassword = Boolean.valueOf(data.getString("correctPassword"));
                     if (correctPassword){
-                        ChatsManager.startNormalChat(getApplicationContext(), chatStartSender);
+                        Handler mainHandler = new Handler(getApplication().getMainLooper());
+                        Runnable myRunnable = new Runnable() {
+                            @Override
+                            public void run() {
+                                ChatsManager.startNormalChat(getApplicationContext(), chatStartSender);
+                            }
+                        };
+                        mainHandler.post(myRunnable);
+
                     }else {
                         //TODO: Tell user that their password was incorrect
                     }

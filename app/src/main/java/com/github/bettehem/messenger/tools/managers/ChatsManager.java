@@ -2,6 +2,7 @@ package com.github.bettehem.messenger.tools.managers;
 
 import android.content.Context;
 import android.content.Intent;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.media.MediaMetadataCompat;
@@ -14,6 +15,7 @@ import com.github.bettehem.messenger.R;
 import com.github.bettehem.messenger.fragments.ChatScreen;
 import com.github.bettehem.messenger.objects.ChatPreparerInfo;
 import com.github.bettehem.messenger.objects.ChatRequestResponseInfo;
+import com.github.bettehem.messenger.tools.adapters.ChatsRecyclerAdapter;
 import com.github.bettehem.messenger.tools.items.ChatItem;
 import com.github.bettehem.messenger.tools.users.Sender;
 
@@ -190,18 +192,40 @@ public abstract class ChatsManager {
             //save key
             Preferences.saveString(context, "requestKey", key, sender);
 
-            //Save a chat item for this chat
-            saveChatItem(context, sender, "New Chat Request", new Time(Calendar.getInstance()));
 
-            Intent intent = new Intent(context, MainActivity.class);
-            intent.putExtra("type", "chatRequest");
-            intent.putExtra("username", sender);
-            //TODO: Remove hard-coded strings
-            CustomNotification.make(context, R.mipmap.ic_launcher, "Messenger", "New chat request from " + sender, intent, true, true).show();
+            boolean chatItemExists = false;
+            ArrayList<ChatItem> chatItems = getChatItems(context);
+            for (ChatItem c : chatItems){
+                if (c.name.contentEquals(sender)){
+                    chatItemExists = true;
+                }
+            }
+
+            //check if a chat item already exists with this username
+            if (chatItemExists){
+                //Save a chat item for this chat
+                saveChatItem(context, sender, "New Chat Request", new Time(Calendar.getInstance()));
+            }else{
+                //edit the existing chat item
+                editChatItem(context, sender, "New Chat Request", new Time(Calendar.getInstance()));
+            }
+
+
+
+            if (Preferences.loadBoolean(context, "appVisible")){
+                MainActivity.chatsRecyclerAdapter.setChatItems(getChatItems(context));
+            }else{
+                Intent intent = new Intent(context, MainActivity.class);
+                intent.putExtra("type", "chatRequest");
+                intent.putExtra("username", sender);
+                //TODO: Remove hard-coded strings
+                CustomNotification.make(context, R.mipmap.ic_launcher, "Messenger", "New chat request from " + sender, intent, true, true).show();
+            }
         }
     }
 
     public static void responseToRequest(final Context context, final boolean acceptRequest, final String username, final String password){
+        //Send response to the chat request
         final String receiver = username.replace(" ", SPLITTER);
         Thread thread = new Thread(){
             public void run(){
@@ -227,6 +251,7 @@ public abstract class ChatsManager {
             }
         };
         thread.start();
+        Snackbar.make(MainActivity.mainRelativeLayout, "Response Sent!, please wait...", Snackbar.LENGTH_LONG).show();
     }
 
     public static ChatRequestResponseInfo handleChatRequestResponse(Context context, boolean requestAccepted, String username, String password){
@@ -296,8 +321,14 @@ public abstract class ChatsManager {
 
     public static void startNormalChat(Context context, String username){
         //TODO: Remove hard-coded strings
-        //Save the new chatItem
+        //Edit the chatItem
         editChatItem(context, username, "Chat Started", new Time(Calendar.getInstance()));
+
+        //update chat item's list
+        MainActivity.chatsRecyclerAdapter.setChatItems(getChatItems(context));
+
+        MainActivity.toolbar.setSubtitle("New Chat");
+        MainActivity.newChatButton.hide();
         openChatScreen(context, username, "normal", R.id.mainFrameLayout, MainActivity.fragmentManager);
     }
 
