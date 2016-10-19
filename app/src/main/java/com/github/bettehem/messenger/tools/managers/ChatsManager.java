@@ -104,6 +104,19 @@ public abstract class ChatsManager {
         return message;
     }
 
+    public static boolean usernameExists(Context context, String username){
+        boolean usernameExists = false;
+
+        ArrayList<ChatItem> chatItems = getChatItems(context);
+        for (ChatItem c : chatItems){
+            if (c.name.contentEquals(username)){
+                usernameExists = true;
+            }
+        }
+
+        return usernameExists;
+    }
+
     /**
      * WARNING!
      * Running this method is not recommended in the main thread!
@@ -123,7 +136,11 @@ public abstract class ChatsManager {
         Preferences.saveString(context, "encryptedUsername", readyUsername, username);
 
         //save a chat item
-        saveChatItem(context, username, "Pending...", new Time(Calendar.getInstance()));
+        if (usernameExists(context, username)){
+            editChatItem(context, username, "Pending...", new Time(Calendar.getInstance()));
+        }else{
+            saveChatItem(context, username, "Pending...", new Time(Calendar.getInstance()));
+        }
 
         sendRequest(context, username);
 
@@ -154,7 +171,7 @@ public abstract class ChatsManager {
         final String receiver = username.replace(" ", SPLITTER);
         Thread thread = new Thread(){
             public void run(){
-                HttpPost post = new HttpPost("https://android.googleapis.com/gcm/send");
+                HttpPost post = new HttpPost("https://fcm.googleapis.com/fcm/send");
                 JSONObject jsonObject = new JSONObject();
                 try {
                     jsonObject.put("to", "/topics/" + receiver);
@@ -166,7 +183,7 @@ public abstract class ChatsManager {
                     StringEntity se = new StringEntity(jsonObject.toString());
                     se.setContentType(new BasicHeader("Content-Type", "application/json"));
                     post.setEntity(se);
-                    post.setHeader("Authorization", "key=" + "AIzaSyAuI1si5iTTF1yTFRlr94vAndtDH4Xgjs8");
+                    post.setHeader("Authorization", "key=" + "AIzaSyBvaDbIT8m2Lx7WJ3oogHH0IeMpBV2QE88");
                     HttpClient client = new DefaultHttpClient();
                     client.execute(post);
                 } catch (Exception e) {
@@ -187,27 +204,18 @@ public abstract class ChatsManager {
             //User doesn't have the chat open, so make a notification
 
             //save status
-            Preferences.saveString(context, "status", "chatRequest", sender);
+            Preferences.saveString(context, "chatStatus", "chatRequest", sender);
 
             //save key
             Preferences.saveString(context, "requestKey", key, sender);
 
 
-            boolean chatItemExists = false;
-            ArrayList<ChatItem> chatItems = getChatItems(context);
-            for (ChatItem c : chatItems){
-                if (c.name.contentEquals(sender)){
-                    chatItemExists = true;
-                }
-            }
-
-            //check if a chat item already exists with this username
-            if (chatItemExists){
-                //Save a chat item for this chat
-                saveChatItem(context, sender, "New Chat Request", new Time(Calendar.getInstance()));
-            }else{
+            if (usernameExists(context, sender)){
                 //edit the existing chat item
                 editChatItem(context, sender, "New Chat Request", new Time(Calendar.getInstance()));
+            }else{
+                //Save a chat item for this chat
+                saveChatItem(context, sender, "New Chat Request", new Time(Calendar.getInstance()));
             }
 
 
@@ -229,7 +237,7 @@ public abstract class ChatsManager {
         final String receiver = username.replace(" ", SPLITTER);
         Thread thread = new Thread(){
             public void run(){
-                HttpPost post = new HttpPost("https://android.googleapis.com/gcm/send");
+                HttpPost post = new HttpPost("https://fcm.googleapis.com/fcm/send");
                 JSONObject jsonObject = new JSONObject();
                 try {
                     jsonObject.put("to", "/topics/" + receiver);
@@ -237,12 +245,12 @@ public abstract class ChatsManager {
                     data.put("type", "requestResponse");
                     data.put("sender", Preferences.loadString(context, "name", ProfileManager.FILENAME));
                     data.put("requestAccepted", String.valueOf(acceptRequest));
-                    data.put("password", password);
+                    data.put("password", EncryptionManager.createKey(password));
                     jsonObject.put("data", data);
                     StringEntity se = new StringEntity(jsonObject.toString());
                     se.setContentType(new BasicHeader("Content-Type", "application/json"));
                     post.setEntity(se);
-                    post.setHeader("Authorization", "key=" + "AIzaSyAuI1si5iTTF1yTFRlr94vAndtDH4Xgjs8");
+                    post.setHeader("Authorization", "key=" + "AIzaSyBvaDbIT8m2Lx7WJ3oogHH0IeMpBV2QE88");
                     HttpClient client = new DefaultHttpClient();
                     client.execute(post);
                 } catch (Exception e) {
@@ -251,7 +259,7 @@ public abstract class ChatsManager {
             }
         };
         thread.start();
-        Snackbar.make(MainActivity.mainRelativeLayout, "Response Sent!, please wait...", Snackbar.LENGTH_LONG).show();
+        Snackbar.make(MainActivity.mainRelativeLayout, "Response Sent!, Please wait...", Snackbar.LENGTH_LONG).show();
     }
 
     public static ChatRequestResponseInfo handleChatRequestResponse(Context context, boolean requestAccepted, String username, String password){
@@ -259,12 +267,9 @@ public abstract class ChatsManager {
             //get local encrypted username
             String localEncryptedUsername = Preferences.loadString(context, "encryptedUsername", username);
 
-            //generate key from password
-            String key = EncryptionManager.createKey(password);
-
             //encrypt username
             String scrambledUsername = EncryptionManager.scramble(username);
-            String encryptedUsername = EncryptionManager.encrypt(key, scrambledUsername);
+            String encryptedUsername = EncryptionManager.encrypt(password, scrambledUsername);
             String readyUsername = EncryptionManager.scramble(encryptedUsername);
 
             if (localEncryptedUsername.contentEquals(readyUsername)){
@@ -284,7 +289,7 @@ public abstract class ChatsManager {
         final String receiver = username.replace(" ", SPLITTER);
         Thread thread = new Thread(){
             public void run(){
-                HttpPost post = new HttpPost("https://android.googleapis.com/gcm/send");
+                HttpPost post = new HttpPost("https://fcm.googleapis.com/fcm/send");
                 JSONObject jsonObject = new JSONObject();
                 try {
                     jsonObject.put("to", "/topics/" + receiver);
@@ -297,7 +302,7 @@ public abstract class ChatsManager {
                     StringEntity se = new StringEntity(jsonObject.toString());
                     se.setContentType(new BasicHeader("Content-Type", "application/json"));
                     post.setEntity(se);
-                    post.setHeader("Authorization", "key=" + "AIzaSyAuI1si5iTTF1yTFRlr94vAndtDH4Xgjs8");
+                    post.setHeader("Authorization", "key=" + "AIzaSyBvaDbIT8m2Lx7WJ3oogHH0IeMpBV2QE88");
                     HttpClient client = new DefaultHttpClient();
                     client.execute(post);
                 } catch (Exception e) {
@@ -310,10 +315,12 @@ public abstract class ChatsManager {
         if (correctPassword){
             //Edit current chatItem
             //TODO: Remove hard-coded strings
-            editChatItem(context, username, "Chat started", new Time(Calendar.getInstance()));
+            editChatItem(context, username, "Chat Started", new Time(Calendar.getInstance()));
 
-            //open the chat screen
-            openChatScreen(context, username, "normal", fragmentId, fragmentManager);
+            //open the chat screen if user is not in chat list
+            if (!Preferences.loadString(context, "currentFragment").contentEquals("")){
+                openChatScreen(context, username, "normal", fragmentId, fragmentManager);
+            }
         }else{
             //TODO: Ask user if they want to delete the chat [ALERT_DIALOG]
         }
@@ -323,6 +330,8 @@ public abstract class ChatsManager {
         //TODO: Remove hard-coded strings
         //Edit the chatItem
         editChatItem(context, username, "Chat Started", new Time(Calendar.getInstance()));
+
+        //TODO: set the chat status
 
         //update chat item's list
         MainActivity.chatsRecyclerAdapter.setChatItems(getChatItems(context));
@@ -410,10 +419,15 @@ public abstract class ChatsManager {
             }
         }
 
+        //delete the old items
+        Preferences.deleteAllValues(context, "ChatDetails");
+
         //save the items
         for (ChatItem c : chatItems){
             saveChatItem(context, c.name, c.message, c.time);
         }
 
+        //update list
+        MainActivity.chatsRecyclerAdapter.setChatItems(getChatItems(context));
     }
 }

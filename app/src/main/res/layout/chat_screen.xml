@@ -39,7 +39,7 @@
                 android:layout_height="wrap_content"
                 android:gravity="center"
                 android:layout_gravity="center"
-                android:text="Waiting for your friend to answer your chat request..."/>
+                android:id="@+id/pendingTextView"/>
 
         </LinearLayout>
 

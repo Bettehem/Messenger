@@ -1,7 +1,6 @@
 package com.github.bettehem.messenger.gcm;
 
 import android.content.Intent;
-import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 
@@ -13,57 +12,62 @@ import com.github.bettehem.messenger.tools.background.RequestResponse;
 import com.github.bettehem.messenger.tools.listeners.GcmReceivedListener;
 import com.github.bettehem.messenger.tools.managers.ChatsManager;
 import com.github.bettehem.messenger.tools.users.Sender;
-import com.google.android.gms.gcm.GcmListenerService;
+import com.google.firebase.messaging.FirebaseMessagingService;
+import com.google.firebase.messaging.RemoteMessage;
 
-public class MessengerGcmListenerServiceGcm extends GcmListenerService implements GcmReceivedListener {
+import java.util.Map;
+
+public class MessengerGcmListenerServiceGcm extends FirebaseMessagingService implements GcmReceivedListener {
     private static final String TOPIC_START = "/topics/";
 
-    /**
-     * Called when message is received.
-     *
-     * @param from SenderID of the sender.
-     * @param data Data bundle containing message data as key/value pairs.
-     *             For Set of keys use data.keySet().
-     */
-    // [START receive_message]
     @Override
-    public void onMessageReceived(String from, Bundle data) {
-        String type = data.getString("type");
+    public void onMessageReceived(RemoteMessage message){
+        String from = message.getFrom();
+        final Map data = message.getData();
+
+        String type = (String) data.get("type");
+        Handler mainHandler = new Handler(getApplication().getMainLooper());
+        Runnable myRunnable;
 
         if (type != null){
 
             switch (type.toLowerCase()){
 
                 case "notification":
-                    notification(data.getString("title"), data.getString("message"), false);
+                    notification((String)  data.get("title"), (String) data.get("message"), false);
                     break;
 
                 case "chatrequest":
-                    String requestSender = getSender(data.getString("sender"));
-                    ChatsManager.handleChatRequest(getApplicationContext(), data.getString("sender").replace(ChatsManager.SPLITTER, " "), data.getString("key"));
+                    final String requestSender = getSender((String) data.get("sender"));
+                    myRunnable = new Runnable() {
+                        @Override
+                        public void run() {
+                            ChatsManager.handleChatRequest(getApplicationContext(), requestSender, (String) data.get("key"));
+                        }
+                    };
+                    mainHandler.post(myRunnable);
                     break;
 
                 case "message":
-                    new ReceivedMessage(getApplicationContext(), true, data.getString("sender"), data.getString("message"));
+                    new ReceivedMessage(getApplicationContext(), true, (String) data.get("sender"), (String) data.get("message"));
                     break;
 
                 case "requestresponse":
-                    String responseSender = getSender(data.getString("sender"));
-                    boolean requestAccepted = Boolean.valueOf(data.getString("requestAccepted"));
-                    String password = data.getString("password");
+                    String responseSender = getSender((String) data.get("sender"));
+                    boolean requestAccepted = Boolean.valueOf((String) data.get("requestAccepted"));
+                    String password = (String) data.get("password");
                     RequestResponse requestResponse = new RequestResponse(getApplicationContext(), requestAccepted, responseSender, password);
                     requestResponse.handleResponse();
                     break;
 
                 case "startchat":
-                    final String chatStartSender = getSender(data.getString("sender"));
-                    boolean correctPassword = Boolean.valueOf(data.getString("correctPassword"));
+                    final String chatStartSender = getSender((String) data.get("sender"));
+                    boolean correctPassword = Boolean.valueOf((String) data.get("correctPassword"));
                     if (correctPassword){
-                        Handler mainHandler = new Handler(getApplication().getMainLooper());
-                        Runnable myRunnable = new Runnable() {
+                        myRunnable = new Runnable() {
                             @Override
                             public void run() {
-                                ChatsManager.startNormalChat(getApplicationContext(), chatStartSender);
+                                ChatsManager.startNormalChat(getApplication(), chatStartSender);
                             }
                         };
                         mainHandler.post(myRunnable);
@@ -75,7 +79,6 @@ public class MessengerGcmListenerServiceGcm extends GcmListenerService implement
 
             }
         }
-
     }
 
 

@@ -1,43 +1,46 @@
 {
   "project_info": {
-    "project_id": "gcm-messenger-7c14e",
-    "project_number": "787105537820",
-    "name": "GCM Messenger"
+    "project_number": "559609538476",
+    "firebase_url": "https://messenger-60905.firebaseio.com",
+    "project_id": "messenger-60905",
+    "storage_bucket": "messenger-60905.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:787105537820:android:e1c9bb11861b2b11",
-        "client_id": "android:com.github.bettehem.messenger",
-        "client_type": 1,
+        "mobilesdk_app_id": "1:559609538476:android:e1c9bb11861b2b11",
         "android_client_info": {
-          "package_name": "com.github.bettehem.messenger",
-          "certificate_hash": []
+          "package_name": "com.github.bettehem.messenger"
         }
       },
-      "oauth_client": [],
-      "api_key": [],
+      "oauth_client": [
+        {
+          "client_id": "559609538476-gkikhuqma8rl2lf4khda5b2jluiiolii.apps.googleusercontent.com",
+          "client_type": 3
+        },
+        {
+          "client_id": "559609538476-t0e58k4agcktv1dg0p4gnrbri7h07s5d.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAC1bUhWZWcQsen6r4Z1CjCx9aedXO6jcE"
+        }
+      ],
       "services": {
         "analytics_service": {
           "status": 1
-        },
-        "cloud_messaging_service": {
-          "status": 2,
-          "apns_config": []
         },
         "appinvite_service": {
           "status": 1,
           "other_platform_oauth_client": []
         },
-        "google_signin_service": {
-          "status": 1
-        },
         "ads_service": {
-          "status": 1
+          "status": 2
         }
       }
     }
   ],
-  "client_info": [],
-  "ARTIFACT_VERSION": "1"
+  "configuration_version": "1"
 }

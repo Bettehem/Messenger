@@ -5,6 +5,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.AppCompatButton;
 import android.support.v7.widget.AppCompatEditText;
+import android.support.v7.widget.AppCompatTextView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -90,6 +91,8 @@ public class ChatScreen extends Fragment implements View.OnClickListener {
             case "pending":
                 //show pending text
                 chatViews.setDisplayedChild(PENDING_VIEW);
+                AppCompatTextView textView = (AppCompatTextView) view.findViewById(R.id.pendingTextView);
+                textView.setText("Waiting for " + username + " to answer your chat request...");
                 break;
 
             case "chatRequest":

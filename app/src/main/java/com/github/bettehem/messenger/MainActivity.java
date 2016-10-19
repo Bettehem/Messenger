@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.view.ViewCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -17,6 +18,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.animation.OvershootInterpolator;
 import android.widget.RelativeLayout;
 import android.widget.ViewFlipper;
 
@@ -39,7 +41,7 @@ import com.google.android.gms.common.GoogleApiAvailability;
 
 import java.util.ArrayList;
 
-public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, View.OnClickListener, ChatRequestListener, ChatItemListener, ProfileListener{
+public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, View.OnClickListener, ChatRequestListener, ChatItemListener, ProfileListener, View.OnLongClickListener {
 
     private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
     private static final String TAG = "MainActivity";
@@ -89,6 +91,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private void buttons(){
         newChatButton = (FloatingActionButton) findViewById(R.id.chatsNewMessageFab);
         newChatButton.setOnClickListener(this);
+        newChatButton.setOnLongClickListener(this);
     }
 
     private void navDrawer(){
@@ -151,8 +154,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
                 toolbar.setTitle("Messenger");
                 toolbar.setSubtitle("Chats");
+
+                chatsRecyclerAdapter.setChatItems(ChatsManager.getChatItems(this));
+                OvershootInterpolator interpolator = new OvershootInterpolator();
+                ViewCompat.animate(newChatButton).rotation(0).withLayer().setDuration(400).setInterpolator(interpolator).start();
             }else{
                 newChatButton.show();
+                OvershootInterpolator interpolator = new OvershootInterpolator();
+                ViewCompat.animate(newChatButton).rotation(0).withLayer().setDuration(400).setInterpolator(interpolator).start();
                 super.onBackPressed();
             }
         }
@@ -216,6 +225,18 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
+    @Override
+    public boolean onLongClick(View view) {
+        switch (view.getId()){
+            case R.id.chatsNewMessageFab:
+                OvershootInterpolator interpolator = new OvershootInterpolator();
+                ViewCompat.animate(newChatButton).rotation(45).withLayer().setDuration(450).setInterpolator(interpolator).start();
+                return true;
+
+            default:
+                return false;
+        }
+    }
 
 
     private void newChat(){
