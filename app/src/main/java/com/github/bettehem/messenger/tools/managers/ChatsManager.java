@@ -183,7 +183,7 @@ public abstract class ChatsManager {
                     StringEntity se = new StringEntity(jsonObject.toString());
                     se.setContentType(new BasicHeader("Content-Type", "application/json"));
                     post.setEntity(se);
-                    post.setHeader("Authorization", "key=" + "AIzaSyBvaDbIT8m2Lx7WJ3oogHH0IeMpBV2QE88");
+                    post.setHeader("Authorization", "key=" + "AIzaSyD8C9exPq2SWMkJUcGc8ZNT8MA9b18rF4I");
                     HttpClient client = new DefaultHttpClient();
                     client.execute(post);
                 } catch (Exception e) {
@@ -233,6 +233,14 @@ public abstract class ChatsManager {
     }
 
     public static void responseToRequest(final Context context, final boolean acceptRequest, final String username, final String password){
+        //generate key from password
+        String key = EncryptionManager.createKey(password);
+
+        //encrypt username
+        String scrambledUsername = EncryptionManager.scramble(username);
+        String encryptedUsername = EncryptionManager.encrypt(key, scrambledUsername);
+        final String readyUsername = EncryptionManager.scramble(encryptedUsername);
+
         //Send response to the chat request
         final String receiver = username.replace(" ", SPLITTER);
         Thread thread = new Thread(){
@@ -245,12 +253,12 @@ public abstract class ChatsManager {
                     data.put("type", "requestResponse");
                     data.put("sender", Preferences.loadString(context, "name", ProfileManager.FILENAME));
                     data.put("requestAccepted", String.valueOf(acceptRequest));
-                    data.put("password", EncryptionManager.createKey(password));
+                    data.put("password", readyUsername);
                     jsonObject.put("data", data);
                     StringEntity se = new StringEntity(jsonObject.toString());
                     se.setContentType(new BasicHeader("Content-Type", "application/json"));
                     post.setEntity(se);
-                    post.setHeader("Authorization", "key=" + "AIzaSyBvaDbIT8m2Lx7WJ3oogHH0IeMpBV2QE88");
+                    post.setHeader("Authorization", "key=" + "AIzaSyD8C9exPq2SWMkJUcGc8ZNT8MA9b18rF4I");
                     HttpClient client = new DefaultHttpClient();
                     client.execute(post);
                 } catch (Exception e) {
@@ -302,7 +310,7 @@ public abstract class ChatsManager {
                     StringEntity se = new StringEntity(jsonObject.toString());
                     se.setContentType(new BasicHeader("Content-Type", "application/json"));
                     post.setEntity(se);
-                    post.setHeader("Authorization", "key=" + "AIzaSyBvaDbIT8m2Lx7WJ3oogHH0IeMpBV2QE88");
+                    post.setHeader("Authorization", "key=" + "AIzaSyD8C9exPq2SWMkJUcGc8ZNT8MA9b18rF4I");
                     HttpClient client = new DefaultHttpClient();
                     client.execute(post);
                 } catch (Exception e) {

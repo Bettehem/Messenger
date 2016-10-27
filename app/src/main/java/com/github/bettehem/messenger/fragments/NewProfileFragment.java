@@ -111,8 +111,6 @@ public class NewProfileFragment extends Fragment implements View.OnClickListener
                 String name = usernameEditText.getText().toString();
                 String status = statusEditText.getText().toString();
                 ProfileManager.saveProfile(getActivity(), new UserProfile(emoji, name, status));
-                MainActivity.fragmentManager.beginTransaction().remove(this);
-                MainActivity.fragmentManager.beginTransaction().replace(R.id.mainFrameLayout, new NewChatAuthFragment()).commit();
                 break;
         }
     }

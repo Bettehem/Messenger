@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:emojicon="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/navDrawerHeaderLayout"
     android:layout_width="match_parent"
     android:layout_height="@dimen/nav_header_height"
     android:background="@drawable/side_nav_bar"
@@ -11,24 +13,32 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     android:theme="@style/ThemeOverlay.AppCompat.Dark">
 
-    <ImageView
-        android:id="@+id/imageView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:paddingTop="@dimen/nav_header_vertical_spacing"
-        android:src="@android:drawable/sym_def_app_icon" />
 
-    <TextView
+    <com.rockerhieu.emojicon.EmojiconTextView
+        android:id="@+id/navDrawerUserEmoji"
+        android:text=":)"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        emojicon:emojiconAlignment="baseline"
+        android:layout_width="wrap_content"
+        android:layout_height="48dp"
+        android:layout_weight="6"
+        android:padding="16dp"
+        android:gravity="center_horizontal" />
+
+    <android.support.v7.widget.AppCompatTextView
+        android:id="@+id/navDrawerUsernameText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingTop="@dimen/nav_header_vertical_spacing"
-        android:text="Android Studio"
+        android:text="Username Goes here"
+        android:textSize="20dp"
         android:textAppearance="@style/TextAppearance.AppCompat.Body1" />
 
-    <TextView
-        android:id="@+id/textView"
+    <android.support.v7.widget.AppCompatTextView
+        android:id="@+id/navDrawerStatusText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="android.studio@android.com" />
+        android:text="Status goes here" />
 
 </LinearLayout>

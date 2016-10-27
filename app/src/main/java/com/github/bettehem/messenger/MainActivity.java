@@ -1,11 +1,12 @@
 package com.github.bettehem.messenger;
 
-import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.view.ViewCompat;
+import android.support.v7.widget.AppCompatTextView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -20,12 +21,12 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.animation.OvershootInterpolator;
 import android.widget.RelativeLayout;
+import android.widget.Toast;
 import android.widget.ViewFlipper;
 
 import com.github.bettehem.androidtools.Preferences;
 import com.github.bettehem.messenger.fragments.NewChatAuthFragment;
 import com.github.bettehem.messenger.fragments.NewProfileFragment;
-import com.github.bettehem.messenger.gcm.RegistrationIntentService;
 import com.github.bettehem.messenger.objects.ChatPreparerInfo;
 import com.github.bettehem.messenger.objects.ChatRequestResponseInfo;
 import com.github.bettehem.messenger.tools.adapters.ChatsRecyclerAdapter;
@@ -36,8 +37,16 @@ import com.github.bettehem.messenger.tools.listeners.ChatRequestListener;
 import com.github.bettehem.messenger.tools.listeners.ProfileListener;
 import com.github.bettehem.messenger.tools.managers.ChatsManager;
 import com.github.bettehem.messenger.tools.managers.ProfileManager;
+import com.github.bettehem.messenger.tools.users.UserProfile;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.messaging.FirebaseMessaging;
+import com.rockerhieu.emojicon.EmojiconTextView;
 
 import java.util.ArrayList;
 
@@ -59,6 +68,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public static ChatsRecyclerAdapter chatsRecyclerAdapter;
     public static ChatRequestListener chatRequestListener;
     public static RelativeLayout mainRelativeLayout;
+    private FirebaseAuth firebaseAuth;
+    private FirebaseAuth.AuthStateListener mAuthListener;
+    private EmojiconTextView emojiTextView;
+    private AppCompatTextView usernameTextView, statusTextView;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -100,8 +114,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         drawer.setDrawerListener(toggle);
         toggle.syncState();
 
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
+        updateNavHeader();
     }
 
     private void recyclers(){
@@ -134,6 +147,33 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private void layouts(){
         mainRelativeLayout = (RelativeLayout) findViewById(R.id.mainVewRelativeLayout);
+    }
+
+    private void updateNavHeader(){
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
+
+        //get user profile
+        UserProfile userProfile = ProfileManager.getProfile(this);
+
+        //add default data to the user profile if empty
+        if (!userProfile.hasData()){
+            userProfile.emoji = "😀";
+            userProfile.name = "Default user";
+            userProfile.status = "Default status";
+        }
+
+        //get headerView
+        View headerView = navigationView.getHeaderView(0);
+
+        //set user details in header
+        emojiTextView = (EmojiconTextView) headerView.findViewById(R.id.navDrawerUserEmoji);
+        usernameTextView = (AppCompatTextView) headerView.findViewById(R.id.navDrawerUsernameText);
+        statusTextView = (AppCompatTextView) headerView.findViewById(R.id.navDrawerStatusText);
+
+        emojiTextView.setText(userProfile.emoji);
+        usernameTextView.setText(userProfile.name);
+        statusTextView.setText(userProfile.status);
     }
 
     @Override
@@ -259,13 +299,51 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     }
 
+    /**
+     *
+     * Subscribe to FCM topics.
+     */
     private void prepareGCM(){
         if (checkPlayServices()) {
-            Intent intent = new Intent(this, RegistrationIntentService.class);
-            intent.putExtra("topics", ChatsManager.getGcmTopics(this));
-            // Start IntentService to register this application with GCM.
-            startService(intent);
+            for (String topic : ChatsManager.getGcmTopics(this)) {
+                FirebaseMessaging.getInstance().subscribeToTopic(topic);
+            }
         }
+
+        firebaseAuth = FirebaseAuth.getInstance();
+        mAuthListener = new FirebaseAuth.AuthStateListener() {
+            @Override
+            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+                FirebaseUser user = firebaseAuth.getCurrentUser();
+                if (user != null) {
+                    // User is signed in
+                    Log.d(TAG, "onAuthStateChanged:signed_in:" + user.getUid());
+                } else {
+                    // User is signed out
+                    Log.d(TAG, "onAuthStateChanged:signed_out");
+                }
+                // ...
+            }
+        };
+
+        firebaseAuth.signInAnonymously()
+                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        Log.d(TAG, "signInAnonymously:onComplete:" + task.isSuccessful());
+
+                        // If sign in fails, display a message to the user. If sign in succeeds
+                        // the auth state listener will be notified and logic to handle the
+                        // signed in user can be handled in the listener.
+                        if (!task.isSuccessful()) {
+                            Log.w(TAG, "signInAnonymously", task.getException());
+                            Toast.makeText(MainActivity.this, "Authentication failed.",
+                                    Toast.LENGTH_SHORT).show();
+                        }
+
+                        // ...
+                    }
+                });
     }
 
 
@@ -290,10 +368,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         //check for play services, and if everything is ok, subscribe to the needed topics
         if (checkPlayServices()) {
-            Intent intent = new Intent(this, RegistrationIntentService.class);
-            intent.putExtra("topics", ChatsManager.getGcmTopics(this));
-            // Start IntentService to register this application with GCM.
-            startService(intent);
+           prepareGCM();
         }
 
         Preferences.saveBoolean(this, "appVisible", true);
@@ -307,6 +382,20 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         super.onPause();
 
         Preferences.saveBoolean(this, "appVisible", false);
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        firebaseAuth.addAuthStateListener(mAuthListener);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (mAuthListener != null) {
+            firebaseAuth.removeAuthStateListener(mAuthListener);
+        }
     }
 
 
@@ -382,6 +471,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     public void onProfileSaved() {
+        fragmentManager.beginTransaction().remove(currentFragment);
+        fragmentManager.beginTransaction().replace(R.id.mainFrameLayout, new NewChatAuthFragment()).commit();
+
         prepareGCM();
+        updateNavHeader();
     }
 }
