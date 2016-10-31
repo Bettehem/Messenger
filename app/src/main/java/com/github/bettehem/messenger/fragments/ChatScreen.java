@@ -5,7 +5,9 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.AppCompatButton;
 import android.support.v7.widget.AppCompatEditText;
+import android.support.v7.widget.AppCompatImageButton;
 import android.support.v7.widget.AppCompatTextView;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -32,6 +34,10 @@ public class ChatScreen extends Fragment implements View.OnClickListener {
     private AppCompatButton acceptRequestButton;
     private AppCompatButton rejectRequestButton;
 
+    private AppCompatImageButton emojiSelectionButton;
+    private AppCompatEditText messageEditText;
+    private RecyclerView messageRecycler;
+
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -56,6 +62,7 @@ public class ChatScreen extends Fragment implements View.OnClickListener {
         viewFlippers();
         editTexts();
         buttons();
+        recyclers();
     }
 
     private void toolbars(){
@@ -71,14 +78,25 @@ public class ChatScreen extends Fragment implements View.OnClickListener {
     private void buttons(){
         acceptRequestButton = (AppCompatButton) view.findViewById(R.id.acceptChatRequestButton);
         rejectRequestButton = (AppCompatButton) view.findViewById(R.id.rejectChatRequestButton);
+        emojiSelectionButton = (AppCompatImageButton) view.findViewById(R.id.chatScreenEmojiSelectButton);
 
         acceptRequestButton.setOnClickListener(this);
         rejectRequestButton.setOnClickListener(this);
+        emojiSelectionButton.setOnClickListener(this);
     }
 
     private void editTexts(){
         passwordEditText = (AppCompatEditText) view.findViewById(R.id.chatScreenPasswordEditText);
+        messageEditText = (AppCompatEditText) view.findViewById(R.id.chatScreenMessageEditText);
     }
+
+    private void recyclers(){
+        messageRecycler = (RecyclerView) view.findViewById(R.id.chatScreenMessageRecycler);
+    }
+
+
+
+
 
     private void checkStatus(){
         String status = Preferences.loadString(getActivity(), "chatStatus", username);

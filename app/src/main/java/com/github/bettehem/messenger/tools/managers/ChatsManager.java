@@ -17,6 +17,7 @@ import com.github.bettehem.messenger.objects.ChatPreparerInfo;
 import com.github.bettehem.messenger.objects.ChatRequestResponseInfo;
 import com.github.bettehem.messenger.tools.adapters.ChatsRecyclerAdapter;
 import com.github.bettehem.messenger.tools.items.ChatItem;
+import com.github.bettehem.messenger.tools.items.MessageItem;
 import com.github.bettehem.messenger.tools.users.Sender;
 
 import org.apache.http.client.HttpClient;
@@ -102,6 +103,12 @@ public abstract class ChatsManager {
         String unscrambled = EncryptionManager.unscramble(rawMessage);
         String message = EncryptionManager.decrypt(EncryptionManager.scramble(SPLITTER.split("-X&X-")[0] + EncryptionManager.scramble(senderData.userName)), unscrambled);
         return message;
+    }
+
+    public static ArrayList<MessageItem> getMessageItems(Context context0){
+        ArrayList<MessageItem> items = new ArrayList<>();
+
+        return items;
     }
 
     public static boolean usernameExists(Context context, String username){
