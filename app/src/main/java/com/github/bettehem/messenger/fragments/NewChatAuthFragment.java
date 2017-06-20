@@ -27,7 +27,6 @@ public class NewChatAuthFragment extends Fragment implements View.OnLongClickLis
     private AppCompatEditText confirmPasswordEditText;
     private AppCompatButton startChatButton;
     private AppCompatTextView passwordInfoTextView;
-    private boolean isVisible = false;
 
 
     @Nullable
@@ -101,14 +100,13 @@ public class NewChatAuthFragment extends Fragment implements View.OnLongClickLis
         //FIXME: Fix visibility toggle
         switch (id){
             case "toggleAuthPasswordVisibilityDialog":
-                if(isVisible){
-                    passwordEditText.setInputType(InputType.TYPE_TEXT_VARIATION_PASSWORD);
-                    confirmPasswordEditText.setInputType(InputType.TYPE_TEXT_VARIATION_PASSWORD);
-                    isVisible = true;
+
+                if(passwordEditText.getInputType() == 129) {
+                    passwordEditText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
+                    confirmPasswordEditText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
                 }else {
-                    passwordEditText.setInputType(InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
-                    confirmPasswordEditText.setInputType(InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
-                    isVisible = false;
+                    passwordEditText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+                    confirmPasswordEditText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
                 }
                 break;
         }
