@@ -92,6 +92,7 @@ public class ChatScreen extends Fragment implements View.OnClickListener {
 
     private void recyclers(){
         messageRecycler = (RecyclerView) view.findViewById(R.id.chatScreenMessageRecycler);
+
     }
 
 

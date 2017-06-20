@@ -106,7 +106,7 @@ public class NewChatAuthFragment extends Fragment implements View.OnLongClickLis
                     confirmPasswordEditText.setInputType(InputType.TYPE_TEXT_VARIATION_PASSWORD);
                     isVisible = true;
                 }else {
-                    passwordEditText.setInputType(InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
+                    passwordEditText.setInputType(InputType.TYPE_TEXT_VARIATION_NORMAL);
                     confirmPasswordEditText.setInputType(InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
                     isVisible = false;
                 }
