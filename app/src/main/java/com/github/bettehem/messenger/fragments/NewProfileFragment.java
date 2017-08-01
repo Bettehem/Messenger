@@ -122,7 +122,13 @@ public class NewProfileFragment extends Fragment implements View.OnClickListener
 
     @Override
     public void onEmojiconClicked(Emojicon emojicon) {
-        emojiTextView.setText(emojicon.getEmoji());
+        String text = emojiTextView.getText().toString();
+
+        if (text.length() < 4){
+            text = text + emojicon.getEmoji();
+        }
+
+        emojiTextView.setText(text);
     }
 
     private void setEmojiconFragment(boolean useSystemDefault) {
