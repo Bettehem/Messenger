@@ -26,7 +26,7 @@ public abstract class ProfileManager {
         Preferences.saveString(context, "status", userProfile.status, FILENAME);
 
 
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        final FirebaseDatabase database = FirebaseDatabase.getInstance();
         DatabaseReference profiles = database.getReference("users");
 
         ValueEventListener postListener = new ValueEventListener() {
@@ -34,7 +34,7 @@ public abstract class ProfileManager {
             public void onDataChange(DataSnapshot dataSnapshot) {
 
                 DatabaseReference profiles = FirebaseDatabase.getInstance().getReference("users");
-                if (dataSnapshot.hasChild(userProfile.name)){
+                if (dataSnapshot.hasChild(userProfile.name) && dataSnapshot.child(userProfile.name).hasChild(userProfile.emoji) && dataSnapshot.child(userProfile.name).hasChild(userProfile.status)){
                     //TODO: inform user of existing username
                     Toast.makeText(context, "Username Exists!", Toast.LENGTH_LONG).show();
                 }else{

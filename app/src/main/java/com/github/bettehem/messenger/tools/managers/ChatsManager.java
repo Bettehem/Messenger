@@ -258,10 +258,14 @@ public abstract class ChatsManager {
                 try {
                     jsonObject.put("to", "/topics/" + receiver);
                     JSONObject data = new JSONObject();
+
+
                     data.put("type", "requestResponse");
                     data.put("sender", Preferences.loadString(context, "name", ProfileManager.FILENAME));
                     data.put("requestAccepted", String.valueOf(acceptRequest));
                     data.put("password", readyUsername);
+
+
                     jsonObject.put("data", data);
                     StringEntity se = new StringEntity(jsonObject.toString());
                     se.setContentType(new BasicHeader("Content-Type", "application/json"));

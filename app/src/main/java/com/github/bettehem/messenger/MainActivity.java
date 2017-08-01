@@ -1,5 +1,6 @@
 package com.github.bettehem.messenger;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
@@ -49,6 +50,7 @@ import com.google.firebase.messaging.FirebaseMessaging;
 import com.rockerhieu.emojicon.EmojiconTextView;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, View.OnClickListener, ChatRequestListener, ChatItemListener, ProfileListener, View.OnLongClickListener {
 
@@ -304,10 +306,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
      * Subscribe to FCM topics.
      */
     private void prepareGCM(){
-        if (checkPlayServices()) {
-            for (String topic : ChatsManager.getGcmTopics(this)) {
-                FirebaseMessaging.getInstance().subscribeToTopic(topic);
-            }
+        if (checkPlayServices()){
+            updateTopics(this);
         }
 
         firebaseAuth = FirebaseAuth.getInstance();
@@ -346,9 +346,18 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 });
     }
 
+    public static void updateTopics(Context context, String... topics){
 
+        ArrayList<String> topicList = new ArrayList<>();
 
+        topicList.addAll(Arrays.asList(topics));
 
+        topicList.addAll(Arrays.asList(ChatsManager.getGcmTopics(context)));
+
+        for (String topic : topicList) {
+            FirebaseMessaging.getInstance().subscribeToTopic(topic);
+        }
+    }
 
 
 
@@ -423,6 +432,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     public void onChatPrepared(ChatPreparerInfo chatPreparerInfo) {
+        //update subscribed topics to listen for the encrypted username
+        MainActivity.updateTopics(this, Preferences.loadString(this, "encryptedUserName", ProfileManager.getProfile(this).name));
+
         //update the chat items list
         chatsRecyclerAdapter.setChatItems(ChatsManager.getChatItems(this));
 
@@ -474,7 +486,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         fragmentManager.beginTransaction().remove(currentFragment);
         fragmentManager.beginTransaction().replace(R.id.mainFrameLayout, new NewChatAuthFragment()).commit();
 
-        prepareGCM();
+        updateTopics(this);
         updateNavHeader();
     }
 }
