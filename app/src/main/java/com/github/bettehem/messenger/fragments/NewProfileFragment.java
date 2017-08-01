@@ -12,6 +12,8 @@ import android.view.ViewGroup;
 import android.widget.ViewFlipper;
 
 import com.github.bettehem.androidtools.Preferences;
+import com.github.bettehem.androidtools.dialog.CustomAlertDialog;
+import com.github.bettehem.androidtools.interfaces.DialogButtonsListener;
 import com.github.bettehem.messenger.MainActivity;
 import com.github.bettehem.messenger.R;
 import com.github.bettehem.messenger.tools.managers.ProfileManager;
@@ -21,7 +23,7 @@ import com.rockerhieu.emojicon.EmojiconTextView;
 import com.rockerhieu.emojicon.EmojiconsFragment;
 import com.rockerhieu.emojicon.emoji.Emojicon;
 
-public class NewProfileFragment extends Fragment implements View.OnClickListener, EmojiconGridFragment.OnEmojiconClickedListener, EmojiconsFragment.OnEmojiconBackspaceClickedListener{
+public class NewProfileFragment extends Fragment implements View.OnClickListener, EmojiconGridFragment.OnEmojiconClickedListener, EmojiconsFragment.OnEmojiconBackspaceClickedListener {
 
     private static final int USERNAME_VIEW = 0;
     private static final int EMOJI_VIEW = 1;
@@ -126,6 +128,18 @@ public class NewProfileFragment extends Fragment implements View.OnClickListener
 
         if (text.length() < 8){
             text = text + emojicon.getEmoji();
+        }else{
+            CustomAlertDialog customAlertDialog;
+
+            String flagInfoText = "";
+
+            if (emojicon.getEmoji().length() == 4){
+                flagInfoText = getString(R.string.flagInfoText);
+            }
+
+            customAlertDialog = new CustomAlertDialog(getActivity(), getString(R.string.oopsText), getString(R.string.emojiLimitFullText) + flagInfoText, false, "OK",  "emojiError");
+
+            customAlertDialog.show();
         }
 
         emojiTextView.setText(text);
@@ -140,4 +154,6 @@ public class NewProfileFragment extends Fragment implements View.OnClickListener
     private void hideEmojiconFragment(){
         fragmentManager.beginTransaction().remove(fragment).commit();
     }
+
+
 }

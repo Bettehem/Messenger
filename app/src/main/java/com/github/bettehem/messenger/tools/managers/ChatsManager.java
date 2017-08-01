@@ -105,7 +105,8 @@ public abstract class ChatsManager {
         return message;
     }
 
-    public static ArrayList<MessageItem> getMessageItems(Context context0){
+    // TODO: 1/6/17 finish this method
+    public static ArrayList<MessageItem> getMessageItems(Context context){
         ArrayList<MessageItem> items = new ArrayList<>();
 
         return items;

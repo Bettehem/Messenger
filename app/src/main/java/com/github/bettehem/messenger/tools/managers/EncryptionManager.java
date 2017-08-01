@@ -23,7 +23,7 @@ public class EncryptionManager {
             byte[] salt = rev.getBytes("UTF-8");
             SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
             //KeySpec spec = new PBEKeySpec(array);
-            KeySpec spec = new PBEKeySpec(array, salt, 65536, 128);
+            KeySpec spec = new PBEKeySpec(array, salt, 65536, 2048);
             SecretKey tmp = factory.generateSecret(spec);
             SecretKey key = new SecretKeySpec(tmp.getEncoded(), "AES");
 
