@@ -62,8 +62,8 @@ public class NewProfileFragment extends Fragment implements View.OnClickListener
 
     private void toolbars(){
         //TODO: Remove hard-coded strings
-        MainActivity.toolbar.setTitle("Messenger");
-        MainActivity.toolbar.setSubtitle("New Profile");
+        MainActivity.toolbar.setTitle("Create Profile");
+        MainActivity.toolbar.setSubtitle("Profile Details");
     }
 
     private void textViews(){
@@ -124,7 +124,7 @@ public class NewProfileFragment extends Fragment implements View.OnClickListener
     public void onEmojiconClicked(Emojicon emojicon) {
         String text = emojiTextView.getText().toString();
 
-        if (text.length() < 4){
+        if (text.length() < 8){
             text = text + emojicon.getEmoji();
         }
 
