@@ -6,6 +6,7 @@ import android.os.AsyncTask;
 import android.support.v4.app.FragmentManager;
 
 import com.github.bettehem.androidtools.Preferences;
+import com.github.bettehem.messenger.R;
 import com.github.bettehem.messenger.objects.ChatPreparerInfo;
 import com.github.bettehem.messenger.tools.listeners.ChatRequestListener;
 import com.github.bettehem.messenger.tools.managers.ChatsManager;
@@ -31,7 +32,7 @@ public class ChatPreparer {
     }
 
     private void dialog(Context context){
-        progressDialog = new CustomProgressDialog(context, "New Message", "Loading", false);
+        progressDialog = new CustomProgressDialog(context, context.getString(R.string.newMessageText), "Loading", false);
         if (Preferences.loadBoolean(context, "appVisible")){
             progressDialog.show();
         }
