@@ -1,13 +1,13 @@
 <resources>
-    <string name="app_name">Messenger</string>
-    <string name="app_version">1.0</string>
+    <string name="app_name" translatable="false">Messenger</string>
+    <string name="app_version" translatable="false">1.0</string>
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
 
     <string name="action_settings">Settings</string>
     <string name="newMessageText">New Message</string>
-    <string name="flagInfoText">(1 flag = 2 emojis)</string>
+    <string name="flagInfoText">\\n(1 flag = 2 emojis)</string>
     <string name="oopsText">Oops..</string>
     <string name="emojiLimitFullText">Emoji limit full :(</string>
 </resources>

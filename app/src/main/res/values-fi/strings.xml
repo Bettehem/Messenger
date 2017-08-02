@@ -1,4 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="newMessageText">Uusi viesti</string>
+    <string name="navigation_drawer_open">Avaa Sivuvalikko</string>
+    <string name="navigation_drawer_close">Sulje Sivuvalikko</string>
+    <string name="action_settings">Asetukset</string>
+    <string name="flagInfoText">\\n(1 lippu = 2 emojia)</string>
+    <string name="oopsText">Hups..</string>
+    <string name="emojiLimitFullText">Emoji</string>
 </resources>

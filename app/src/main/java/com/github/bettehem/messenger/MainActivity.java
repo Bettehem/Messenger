@@ -26,6 +26,7 @@ import android.widget.Toast;
 import android.widget.ViewFlipper;
 
 import com.github.bettehem.androidtools.Preferences;
+import com.github.bettehem.androidtools.dialog.CustomAlertDialog;
 import com.github.bettehem.messenger.fragments.NewChatAuthFragment;
 import com.github.bettehem.messenger.fragments.NewProfileFragment;
 import com.github.bettehem.messenger.objects.ChatPreparerInfo;
