@@ -23,7 +23,7 @@ import com.rockerhieu.emojicon.EmojiconTextView;
 import com.rockerhieu.emojicon.EmojiconsFragment;
 import com.rockerhieu.emojicon.emoji.Emojicon;
 
-public class NewProfileFragment extends Fragment implements View.OnClickListener, EmojiconGridFragment.OnEmojiconClickedListener, EmojiconsFragment.OnEmojiconBackspaceClickedListener {
+public class NewProfileFragment extends Fragment implements View.OnClickListener, EmojiconGridFragment.OnEmojiconClickedListener, EmojiconsFragment.OnEmojiconBackspaceClickedListener, DialogButtonsListener {
 
     private static final int USERNAME_VIEW = 0;
     private static final int EMOJI_VIEW = 1;
@@ -112,7 +112,15 @@ public class NewProfileFragment extends Fragment implements View.OnClickListener
                 String emoji = emojiTextView.getText().toString();
                 String name = usernameEditText.getText().toString();
                 String status = statusEditText.getText().toString();
-                ProfileManager.saveProfile(getActivity(), new UserProfile(emoji, name, status));
+
+                if (!emoji.contentEquals("") && !name.contentEquals("") && !status.contentEquals("")){
+
+                    ProfileManager.saveProfile(getActivity(), new UserProfile(emoji, name, status));
+                } else {
+                    CustomAlertDialog.make(getActivity(), getString(R.string.oopsText), getString(R.string.allFieldsRequiedText), false, getString(R.string.okText), this, "noDataInFieldError").show();
+                }
+
+
                 break;
         }
     }
@@ -156,4 +164,18 @@ public class NewProfileFragment extends Fragment implements View.OnClickListener
     }
 
 
+    @Override
+    public void onPositiveButtonClicked(String id) {
+
+    }
+
+    @Override
+    public void onNeutralButtonClicked(String id) {
+
+    }
+
+    @Override
+    public void onNegativeButtonClicked(String id) {
+
+    }
 }

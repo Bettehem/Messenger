@@ -24,6 +24,7 @@
         <com.rockerhieu.emojicon.EmojiconTextView
             android:id="@+id/fragmentNewProfileSelectProfileEmojiTextView"
             android:text=""
+            android:maxLines="1"
             android:textSize="24sp"
             android:textStyle="bold"
             emojicon:emojiconAlignment="baseline"
@@ -62,6 +63,8 @@
 
             <android.support.design.widget.TextInputLayout
                     android:layout_width="match_parent"
+                    android:maxLines="1"
+                    android:maxLength="15"
                     android:layout_height="wrap_content"
                     android:layout_weight="10">
                     <android.support.v7.widget.AppCompatEditText
@@ -86,6 +89,8 @@
                 <android.support.v7.widget.AppCompatEditText
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:maxLines="4"
+                    android:maxLength="250"
                     android:hint="Enter status"
                     android:id="@+id/fragmentNewProfileStatusEditText"/>
             </android.support.design.widget.TextInputLayout>
