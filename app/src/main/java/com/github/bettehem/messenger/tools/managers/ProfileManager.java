@@ -24,36 +24,9 @@ public abstract class ProfileManager {
         Preferences.saveString(context, "emoji", userProfile.emoji, FILENAME);
         Preferences.saveString(context, "name", userProfile.name, FILENAME);
         Preferences.saveString(context, "status", userProfile.status, FILENAME);
-
-
-        final FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference profiles = database.getReference("users");
-
-        ValueEventListener postListener = new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-
-                DatabaseReference profiles = FirebaseDatabase.getInstance().getReference("users");
-                if (dataSnapshot.hasChild(userProfile.name) && dataSnapshot.child(userProfile.name).hasChild(userProfile.emoji) && dataSnapshot.child(userProfile.name).hasChild(userProfile.status)){
-                    //TODO: inform user of existing username
-                    Toast.makeText(context, "Username Exists!", Toast.LENGTH_LONG).show();
-                }else{
-                    profiles.child(userProfile.name).child("status").setValue(userProfile.status);
-                    profiles.child(userProfile.name).child("emoji").setValue(userProfile.emoji);
-                    if (profileListener != null){
-                        profileListener.onProfileSaved();
-                    }
-                }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                // Getting Post failed, log a message
-                Log.w(TAG, "loadPost:onCancelled", databaseError.toException());
-                // ...
-            }
-        };
-        profiles.addValueEventListener(postListener);
+        if (profileListener != null){
+            profileListener.onProfileSaved();
+        }
     }
 
     public static UserProfile getProfile(Context context){
