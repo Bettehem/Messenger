@@ -65,7 +65,7 @@ public class NewProfileFragment extends Fragment implements View.OnClickListener
     private void toolbars(){
         //TODO: Remove hard-coded strings
         MainActivity.toolbar.setTitle("Create Profile");
-        MainActivity.toolbar.setSubtitle("Profile Details");
+        MainActivity.toolbar.setSubtitle("Enter Profile Details");
     }
 
     private void textViews(){

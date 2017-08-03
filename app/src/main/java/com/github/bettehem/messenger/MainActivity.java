@@ -86,6 +86,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         setup();
 
+        checkIfProfileExists();
+
         checkExtras();
     }
 
@@ -283,16 +285,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 
     private void newChat(){
-        newChatButton.hide();
-
-        if (!Preferences.fileExists(this, "UserProfile", "xml")){
-
-            //Open a profile addition screen, and let the user add a new profile
-            mainViewFlipper.setDisplayedChild(MAIN_FRAGMENT);
-            fragmentManager = getSupportFragmentManager();
-            currentFragment = new NewProfileFragment();
-            fragmentManager.beginTransaction().replace(R.id.mainFrameLayout, currentFragment).commit();
-        }else{
+        if (checkIfProfileExists()){
+            newChatButton.hide();
             //open new chat addition screen
             mainViewFlipper.setDisplayedChild(MAIN_FRAGMENT);
             fragmentManager = getSupportFragmentManager();
@@ -345,6 +339,21 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         // ...
                     }
                 });
+    }
+
+    private boolean checkIfProfileExists(){
+        if (!Preferences.fileExists(this, "UserProfile", "xml")){
+            //Open a profile addition screen, and let the user add a new profile
+            newChatButton.hide();
+            mainViewFlipper.setDisplayedChild(MAIN_FRAGMENT);
+            fragmentManager = getSupportFragmentManager();
+            currentFragment = new NewProfileFragment();
+            fragmentManager.beginTransaction().replace(R.id.mainFrameLayout, currentFragment).commit();
+
+            return false;
+        }else {
+            return true;
+        }
     }
 
     public static void updateTopics(Context context, String... topics){
@@ -468,9 +477,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         //TODO: Ask user if they want to delete the chat with $USER
         return false;
     }
-
-
-
 
     private void checkExtras(){
         if (getIntent().hasExtra("type")){
