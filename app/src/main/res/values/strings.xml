@@ -10,4 +10,6 @@
     <string name="flagInfoText">\\n(1 flag = 2 emojis)</string>
     <string name="oopsText">Oops..</string>
     <string name="emojiLimitFullText">Emoji limit full :(</string>
+    <string name="okText">ok</string>
+    <string name="allFieldsRequiedText">All fields must contain data</string>
 </resources>

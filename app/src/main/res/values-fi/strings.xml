@@ -7,4 +7,6 @@
     <string name="flagInfoText">\\n(1 lippu = 2 emojia)</string>
     <string name="oopsText">Hups..</string>
     <string name="emojiLimitFullText">Emoji</string>
+    <string name="okText">ok</string>
+    <string name="allFieldsRequiedText">Kaikki kentät pitää olla täytettynä.</string>
 </resources>

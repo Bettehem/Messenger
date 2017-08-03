@@ -2,16 +2,16 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:emojicon="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:orientation="vertical"
+    android:id="@+id/fragmentNewProfile"
     android:layout_width="match_parent"
-    android:paddingStart="@dimen/activity_horizontal_margin"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingEnd="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="8dp"
-    android:paddingBottom="8dp"
     android:layout_height="match_parent"
-    android:id="@+id/fragmentNewProfile">
+    android:orientation="vertical"
+    android:paddingBottom="8dp"
+    android:paddingEnd="@dimen/activity_horizontal_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingStart="@dimen/activity_horizontal_margin"
+    android:paddingTop="8dp">
 
     <!--TODO: Remove hard-coded strings-->
 
@@ -23,36 +23,69 @@
 
         <com.rockerhieu.emojicon.EmojiconTextView
             android:id="@+id/fragmentNewProfileSelectProfileEmojiTextView"
-            android:text=""
-            android:textSize="24sp"
-            android:textStyle="bold"
-            emojicon:emojiconAlignment="baseline"
             android:layout_width="match_parent"
             android:layout_height="48dp"
             android:layout_weight="6"
+            android:gravity="center_horizontal"
+            android:maxLines="1"
             android:padding="8dp"
-            android:gravity="center_horizontal"/>
+            android:text=""
+            android:textSize="24sp"
+            android:textStyle="bold"
+            emojicon:emojiconAlignment="baseline" />
 
         <android.support.v7.widget.AppCompatButton
+            android:id="@+id/fragmentNewProfileSelectProfileEmojiButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Select Profile Emoji"
+            android:layout_gravity="center_horizontal"
             android:layout_weight="4"
             android:gravity="center"
-            android:layout_gravity="center_horizontal"
-            android:id="@+id/fragmentNewProfileSelectProfileEmojiButton"/>
+            android:text="Select Profile Emoji" />
 
     </LinearLayout>
 
     <ViewFlipper
+        android:id="@+id/newProfileViewFlipper"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/newProfileViewFlipper">
+        android:layout_height="match_parent">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:weightSum="100">
+
+
+
+
+                <android.support.design.widget.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="13">
+
+                    <android.support.v7.widget.AppCompatEditText
+                        android:id="@+id/fragmentNewProfileUserNameEditText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="Enter username"
+                        android:maxLength="20"
+                        android:maxLines="1" />
+                </android.support.design.widget.TextInputLayout>
+
+                <android.support.v7.widget.AppCompatTextView
+                    android:layout_height="match_parent"
+                    android:layout_weight="87"
+                    android:gravity="bottom|end"
+                    tools:text="0/20"
+                    android:text="0/20"
+                    android:id="@+id/fragmentNewProfileUserNameCharacterCounterText"
+                    android:layout_width="match_parent"/>
+            </LinearLayout>
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -60,48 +93,42 @@
                 android:orientation="horizontal"
                 android:weightSum="100">
 
-            <android.support.design.widget.TextInputLayout
+                <android.support.design.widget.TextInputLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="10">
+                    android:layout_weight="13">
+
                     <android.support.v7.widget.AppCompatEditText
+                        android:id="@+id/fragmentNewProfileStatusEditText"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="Enter username"
-                        android:id="@+id/fragmentNewProfileUserNameEditText"/>
+                        android:hint="Enter status"
+                        android:maxLength="250"
+                        android:maxLines="4" />
                 </android.support.design.widget.TextInputLayout>
 
                 <android.support.v7.widget.AppCompatTextView
+                    android:id="@+id/fragmentNewProfileStatusCharacterCounterText"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:gravity="bottom"
-                    android:layout_weight="90"
-                    android:id="@+id/fragmentNewProfileUserNameCharacterCounterText"
-                    tools:text="0/15"/>
+                    android:layout_weight="87"
+                    android:gravity="bottom|end"
+                    tools:text="0/250"
+                    android:text="0/250"/>
             </LinearLayout>
 
-            <android.support.design.widget.TextInputLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-                <android.support.v7.widget.AppCompatEditText
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:hint="Enter status"
-                    android:id="@+id/fragmentNewProfileStatusEditText"/>
-            </android.support.design.widget.TextInputLayout>
-
             <android.support.v7.widget.AppCompatButton
+                android:id="@+id/newProfileSaveButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Save"
-                android:id="@+id/newProfileSaveButton"/>
+                android:text="Save" />
 
         </LinearLayout>
 
         <FrameLayout
+            android:id="@+id/fragmentNewProfileEmojiFrameLayout"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:id="@+id/fragmentNewProfileEmojiFrameLayout"/>
+            android:layout_height="match_parent" />
 
     </ViewFlipper>
 

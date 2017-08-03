@@ -6,6 +6,9 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.widget.AppCompatButton;
 import android.support.v7.widget.AppCompatEditText;
+import android.support.v7.widget.AppCompatTextView;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,7 +26,7 @@ import com.rockerhieu.emojicon.EmojiconTextView;
 import com.rockerhieu.emojicon.EmojiconsFragment;
 import com.rockerhieu.emojicon.emoji.Emojicon;
 
-public class NewProfileFragment extends Fragment implements View.OnClickListener, EmojiconGridFragment.OnEmojiconClickedListener, EmojiconsFragment.OnEmojiconBackspaceClickedListener {
+public class NewProfileFragment extends Fragment implements View.OnClickListener, EmojiconGridFragment.OnEmojiconClickedListener, EmojiconsFragment.OnEmojiconBackspaceClickedListener, DialogButtonsListener {
 
     private static final int USERNAME_VIEW = 0;
     private static final int EMOJI_VIEW = 1;
@@ -39,6 +42,8 @@ public class NewProfileFragment extends Fragment implements View.OnClickListener
     private FragmentManager fragmentManager;
     private Fragment fragment;
     private ViewFlipper viewFlipper;
+    private AppCompatTextView usernameChars;
+    private AppCompatTextView statusChars;
 
     @Nullable
     @Override
@@ -70,11 +75,46 @@ public class NewProfileFragment extends Fragment implements View.OnClickListener
 
     private void textViews(){
         emojiTextView = (EmojiconTextView) view.findViewById(R.id.fragmentNewProfileSelectProfileEmojiTextView);
+        usernameChars = (AppCompatTextView) view.findViewById(R.id.fragmentNewProfileUserNameCharacterCounterText);
+        statusChars = (AppCompatTextView) view.findViewById(R.id.fragmentNewProfileStatusCharacterCounterText);
     }
 
     private void editTexts(){
         usernameEditText = (AppCompatEditText) view.findViewById(R.id.fragmentNewProfileUserNameEditText);
         statusEditText = (AppCompatEditText) view.findViewById(R.id.fragmentNewProfileStatusEditText);
+        usernameEditText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                usernameChars.setText(s.length() + "/20");
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
+
+        statusEditText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                statusChars.setText(s.length() + "/250");
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
     }
 
     private void buttons(){
@@ -112,7 +152,15 @@ public class NewProfileFragment extends Fragment implements View.OnClickListener
                 String emoji = emojiTextView.getText().toString();
                 String name = usernameEditText.getText().toString();
                 String status = statusEditText.getText().toString();
-                ProfileManager.saveProfile(getActivity(), new UserProfile(emoji, name, status));
+
+                if (!emoji.contentEquals("") && !name.contentEquals("") && !status.contentEquals("")){
+
+                    ProfileManager.saveProfile(getActivity(), new UserProfile(emoji, name, status));
+                } else {
+                    CustomAlertDialog.make(getActivity(), getString(R.string.oopsText), getString(R.string.allFieldsRequiedText), false, getString(R.string.okText), this, "noDataInFieldError").show();
+                }
+
+
                 break;
         }
     }
@@ -156,4 +204,18 @@ public class NewProfileFragment extends Fragment implements View.OnClickListener
     }
 
 
+    @Override
+    public void onPositiveButtonClicked(String id) {
+
+    }
+
+    @Override
+    public void onNeutralButtonClicked(String id) {
+
+    }
+
+    @Override
+    public void onNegativeButtonClicked(String id) {
+
+    }
 }
