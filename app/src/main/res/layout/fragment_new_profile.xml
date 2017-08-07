@@ -73,6 +73,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:hint="Enter username"
+                        android:inputType="text"
                         android:maxLength="20"
                         android:maxLines="1" />
                 </android.support.design.widget.TextInputLayout>
@@ -103,7 +104,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:hint="Enter status"
-                        android:maxLength="250"
+                        android:inputType="text"
+                        android:maxLength="50"
                         android:maxLines="4" />
                 </android.support.design.widget.TextInputLayout>
 
@@ -113,8 +115,8 @@
                     android:layout_height="match_parent"
                     android:layout_weight="87"
                     android:gravity="bottom|end"
-                    tools:text="0/250"
-                    android:text="0/250"/>
+                    tools:text="0/50"
+                    android:text="0/50"/>
             </LinearLayout>
 
             <android.support.v7.widget.AppCompatButton

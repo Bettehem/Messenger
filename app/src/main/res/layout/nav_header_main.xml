@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:emojicon="http://schemas.android.com/apk/res-auto"
     android:id="@+id/navDrawerHeaderLayout"
     android:layout_width="match_parent"
@@ -16,15 +17,15 @@
 
     <com.rockerhieu.emojicon.EmojiconTextView
         android:id="@+id/navDrawerUserEmoji"
+        android:layout_width="wrap_content"
+        android:layout_height="20dp"
+        android:layout_weight="6"
+        android:gravity="center_horizontal|bottom"
+        android:padding="16dp"
         android:text=":)"
         android:textSize="24sp"
         android:textStyle="bold"
-        emojicon:emojiconAlignment="baseline"
-        android:layout_width="wrap_content"
-        android:layout_height="48dp"
-        android:layout_weight="6"
-        android:padding="16dp"
-        android:gravity="center_horizontal" />
+        emojicon:emojiconAlignment="baseline" />
 
     <android.support.v7.widget.AppCompatTextView
         android:id="@+id/navDrawerUsernameText"
@@ -32,13 +33,18 @@
         android:layout_height="wrap_content"
         android:paddingTop="@dimen/nav_header_vertical_spacing"
         android:text="Username Goes here"
-        android:textSize="20dp"
-        android:textAppearance="@style/TextAppearance.AppCompat.Body1" />
+        android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+        android:textSize="20dp" />
 
-    <android.support.v7.widget.AppCompatTextView
-        android:id="@+id/navDrawerStatusText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Status goes here" />
+
+
+
+        <android.support.v7.widget.AppCompatTextView
+            android:id="@+id/navDrawerStatusText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Status goes here" />
+
 
 </LinearLayout>
+

@@ -107,7 +107,7 @@ public class NewProfileFragment extends Fragment implements View.OnClickListener
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                statusChars.setText(s.length() + "/250");
+                statusChars.setText(s.length() + "/50");
             }
 
             @Override
