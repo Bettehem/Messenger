@@ -29,6 +29,7 @@ import com.github.bettehem.androidtools.Preferences;
 import com.github.bettehem.androidtools.dialog.CustomAlertDialog;
 import com.github.bettehem.messenger.fragments.NewChatAuthFragment;
 import com.github.bettehem.messenger.fragments.NewProfileFragment;
+import com.github.bettehem.messenger.fragments.SettingsFragment;
 import com.github.bettehem.messenger.objects.ChatPreparerInfo;
 import com.github.bettehem.messenger.objects.ChatRequestResponseInfo;
 import com.github.bettehem.messenger.tools.adapters.ChatsRecyclerAdapter;
@@ -37,6 +38,7 @@ import com.github.bettehem.messenger.tools.items.ChatItem;
 import com.github.bettehem.messenger.tools.listeners.ChatItemListener;
 import com.github.bettehem.messenger.tools.listeners.ChatRequestListener;
 import com.github.bettehem.messenger.tools.listeners.ProfileListener;
+import com.github.bettehem.messenger.tools.listeners.SettingsListener;
 import com.github.bettehem.messenger.tools.managers.ChatsManager;
 import com.github.bettehem.messenger.tools.managers.ProfileManager;
 import com.github.bettehem.messenger.tools.users.UserProfile;
@@ -53,7 +55,7 @@ import com.rockerhieu.emojicon.EmojiconTextView;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, View.OnClickListener, ChatRequestListener, ChatItemListener, ProfileListener, View.OnLongClickListener {
+public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, View.OnClickListener, ChatRequestListener, ChatItemListener, ProfileListener, View.OnLongClickListener, SettingsListener {
 
     private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
     private static final String TAG = "MainActivity";
@@ -73,8 +75,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public static RelativeLayout mainRelativeLayout;
     private FirebaseAuth firebaseAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
+    private NavigationView navigationView;
     private EmojiconTextView emojiTextView;
     private AppCompatTextView usernameTextView, statusTextView;
+
+    private boolean isFabPressed = false;
 
 
     @Override
@@ -155,7 +160,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     private void updateNavHeader(){
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
         //get user profile
@@ -228,6 +233,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            mainViewFlipper.setDisplayedChild(MAIN_FRAGMENT);
+            fragmentManager = getSupportFragmentManager();
+            SettingsFragment settingsFragment = new SettingsFragment();
+            settingsFragment.setListener(this);
+            fragmentManager.beginTransaction().replace(R.id.mainFrameLayout, settingsFragment).commit();
             return true;
         }
 
@@ -274,8 +284,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public boolean onLongClick(View view) {
         switch (view.getId()){
             case R.id.chatsNewMessageFab:
-                OvershootInterpolator interpolator = new OvershootInterpolator();
-                ViewCompat.animate(newChatButton).rotation(45).withLayer().setDuration(450).setInterpolator(interpolator).start();
+                if (isFabPressed){
+                    OvershootInterpolator interpolator = new OvershootInterpolator();
+                    ViewCompat.animate(newChatButton).rotation(0).withLayer().setDuration(450).setInterpolator(interpolator).start();
+                    isFabPressed = false;
+                }else{
+                    OvershootInterpolator interpolator = new OvershootInterpolator();
+                    ViewCompat.animate(newChatButton).rotation(45).withLayer().setDuration(450).setInterpolator(interpolator).start();
+                    isFabPressed = true;
+                }
                 return true;
 
             default:
@@ -494,6 +511,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         fragmentManager.beginTransaction().replace(R.id.mainFrameLayout, new NewChatAuthFragment()).commit();
 
         updateTopics(this);
+        updateNavHeader();
+    }
+
+    @Override
+    public void onProfileDeleted() {
         updateNavHeader();
     }
 }
