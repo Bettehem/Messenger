@@ -274,7 +274,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         switch (v.getId()){
 
             case R.id.chatsNewMessageFab:
-                newChat();
+                if (isFabPressed){
+                    OvershootInterpolator interpolator = new OvershootInterpolator();
+                    ViewCompat.animate(newChatButton).rotation(0).withLayer().setDuration(450).setInterpolator(interpolator).start();
+                    isFabPressed = false;
+                    // TODO: 8/26/17 hide checkboxes
+                }else {
+                    newChat();
+                }
                 break;
 
         }
@@ -292,6 +299,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     OvershootInterpolator interpolator = new OvershootInterpolator();
                     ViewCompat.animate(newChatButton).rotation(45).withLayer().setDuration(450).setInterpolator(interpolator).start();
                     isFabPressed = true;
+
+                    // TODO: 8/25/17 set chat list items' checkboxes to be visible
                 }
                 return true;
 
