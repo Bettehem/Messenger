@@ -16,6 +16,7 @@ import android.widget.ViewFlipper;
 import com.github.bettehem.androidtools.Preferences;
 import com.github.bettehem.messenger.MainActivity;
 import com.github.bettehem.messenger.R;
+import com.github.bettehem.messenger.tools.listeners.ChatItemListener;
 import com.github.bettehem.messenger.tools.managers.ChatsManager;
 
 public class ChatScreen extends Fragment implements View.OnClickListener {
@@ -37,6 +38,9 @@ public class ChatScreen extends Fragment implements View.OnClickListener {
     private AppCompatImageButton emojiSelectionButton;
     private AppCompatEditText messageEditText;
     private RecyclerView messageRecycler;
+
+    private ChatItemListener listener;
+
 
     @Nullable
     @Override
@@ -121,16 +125,20 @@ public class ChatScreen extends Fragment implements View.OnClickListener {
         }
     }
 
+    public void setChatItemListener(ChatItemListener chatItemListener){
+        listener = chatItemListener;
+    }
+
     @Override
     public void onClick(View v) {
         switch (v.getId()){
             case R.id.acceptChatRequestButton:
                 //TODO: Add check for empty password
-                ChatsManager.responseToRequest(getActivity(), true, username, passwordEditText.getText().toString());
+                ChatsManager.responseToRequest(getActivity(), true, username, passwordEditText.getText().toString(), listener);
                 break;
 
             case R.id.rejectChatRequestButton:
-                ChatsManager.responseToRequest(getActivity(), false, username, "");
+                ChatsManager.responseToRequest(getActivity(), false, username, "", listener);
                 break;
         }
     }

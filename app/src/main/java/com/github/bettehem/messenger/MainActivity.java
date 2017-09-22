@@ -38,9 +38,12 @@ import com.github.bettehem.messenger.tools.items.ChatItem;
 import com.github.bettehem.messenger.tools.listeners.ChatItemListener;
 import com.github.bettehem.messenger.tools.listeners.ChatRequestListener;
 import com.github.bettehem.messenger.tools.listeners.ProfileListener;
+import com.github.bettehem.messenger.tools.listeners.TopicListener;
 import com.github.bettehem.messenger.tools.listeners.SettingsListener;
 import com.github.bettehem.messenger.tools.managers.ChatsManager;
+import com.github.bettehem.messenger.tools.managers.EncryptionManager;
 import com.github.bettehem.messenger.tools.managers.ProfileManager;
+import com.github.bettehem.messenger.tools.managers.TopicManager;
 import com.github.bettehem.messenger.tools.users.UserProfile;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
@@ -52,10 +55,12 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.rockerhieu.emojicon.EmojiconTextView;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, View.OnClickListener, ChatRequestListener, ChatItemListener, ProfileListener, View.OnLongClickListener, SettingsListener {
+public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, View.OnClickListener, ChatRequestListener, ChatItemListener, ProfileListener, View.OnLongClickListener, TopicListener, SettingsListener {
 
     private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
     private static final String TAG = "MainActivity";
@@ -73,8 +78,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public static ChatsRecyclerAdapter chatsRecyclerAdapter;
     public static ChatRequestListener chatRequestListener;
     public static RelativeLayout mainRelativeLayout;
-    private FirebaseAuth firebaseAuth;
-    private FirebaseAuth.AuthStateListener mAuthListener;
     private NavigationView navigationView;
     private EmojiconTextView emojiTextView;
     private AppCompatTextView usernameTextView, statusTextView;
@@ -82,10 +85,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private boolean isFabPressed = false;
 
 
+    private TopicManager topicManager;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        topicManager = new TopicManager(this, this);
 
         prepareGCM();
 
@@ -321,41 +329,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         if (checkPlayServices()){
             updateTopics(this);
         }
-
-        firebaseAuth = FirebaseAuth.getInstance();
-        mAuthListener = new FirebaseAuth.AuthStateListener() {
-            @Override
-            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-                FirebaseUser user = firebaseAuth.getCurrentUser();
-                if (user != null) {
-                    // User is signed in
-                    Log.d(TAG, "onAuthStateChanged:signed_in:" + user.getUid());
-                } else {
-                    // User is signed out
-                    Log.d(TAG, "onAuthStateChanged:signed_out");
-                }
-                // ...
-            }
-        };
-
-        firebaseAuth.signInAnonymously()
-                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        Log.d(TAG, "signInAnonymously:onComplete:" + task.isSuccessful());
-
-                        // If sign in fails, display a message to the user. If sign in succeeds
-                        // the auth state listener will be notified and logic to handle the
-                        // signed in user can be handled in the listener.
-                        if (!task.isSuccessful()) {
-                            Log.w(TAG, "signInAnonymously", task.getException());
-                            Toast.makeText(MainActivity.this, "Authentication failed.",
-                                    Toast.LENGTH_SHORT).show();
-                        }
-
-                        // ...
-                    }
-                });
     }
 
     private boolean checkIfProfileExists(){
@@ -373,13 +346,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
-    public static void updateTopics(Context context, String... topics){
+    public void  updateTopics(Context context, String... topics){
 
         ArrayList<String> topicList = new ArrayList<>();
 
-        topicList.addAll(Arrays.asList(topics));
-
-        topicList.addAll(Arrays.asList(ChatsManager.getGcmTopics(context)));
+        for (String s : topics){
+            if (!s.contentEquals(""))
+            topicList.add(s);
+        }
+        topicList.addAll(topicManager.getTopics());
 
         for (String topic : topicList) {
             FirebaseMessaging.getInstance().subscribeToTopic(topic);
@@ -420,20 +395,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         Preferences.saveBoolean(this, "appVisible", false);
     }
 
-    @Override
-    public void onStart() {
-        super.onStart();
-        firebaseAuth.addAuthStateListener(mAuthListener);
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-        if (mAuthListener != null) {
-            firebaseAuth.removeAuthStateListener(mAuthListener);
-        }
-    }
-
 
     //gcm stuff
     /**
@@ -460,13 +421,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     public void onChatPrepared(ChatPreparerInfo chatPreparerInfo) {
         //update subscribed topics to listen for the encrypted username
-        MainActivity.updateTopics(this, Preferences.loadString(this, "encryptedUserName", ProfileManager.getProfile(this).name));
+        topicManager.addTopic(chatPreparerInfo.encryptedUsername);
 
         //update the chat items list
         chatsRecyclerAdapter.setChatItems(ChatsManager.getChatItems(this));
 
         //open Chat screen
-        ChatsManager.openChatScreen(this, chatPreparerInfo.username, chatPreparerInfo.status, chatPreparerInfo.frameId, chatPreparerInfo.fragmentManager);
+        ChatsManager.openChatScreen(this, chatPreparerInfo.username, chatPreparerInfo.status, chatPreparerInfo.frameId, chatPreparerInfo.fragmentManager, this);
     }
 
     @Override
@@ -475,7 +436,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             //If other user accepted the chat request, start the chat if password was also correct
 
             //Start the chat with the other user
-            ChatsManager.startChat(this, responseInfo.correctPassword, responseInfo.username, R.id.mainFrameLayout, getSupportFragmentManager());
+            ChatsManager.startChat(this, responseInfo.correctPassword, responseInfo.username, R.id.mainFrameLayout, getSupportFragmentManager(), this);
 
         }else{
             //TODO: Request rejected
@@ -486,7 +447,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public void onItemClicked(View v, int position) {
         newChatButton.hide();
         String status = Preferences.loadString(this, "chatStatus", v.getTag().toString());
-        ChatsManager.openChatScreen(this, v.getTag().toString(), status, R.id.mainFrameLayout, getSupportFragmentManager());
+        ChatsManager.openChatScreen(this, v.getTag().toString(), status, R.id.mainFrameLayout, getSupportFragmentManager(), this);
     }
 
     @Override
@@ -495,27 +456,52 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         return false;
     }
 
+    @Override
+    public void onRequestAccepted(String username, final String key) {
+        final Context context = this;
+        new Thread(){
+            @Override
+            public void run() {
+                String topic = EncryptionManager.scramble(EncryptionManager.encrypt(key, EncryptionManager.scramble(ProfileManager.getProfile(context).name)));
+                topicManager.addTopic(topic);
+            }
+        }.run();
+    }
+
     private void checkExtras(){
         if (getIntent().hasExtra("type")){
             switch (getIntent().getExtras().getString("type")){
                 case "chatRequest":
-                    ChatsManager.openChatScreen(this, getIntent().getExtras().getString("username"), "chatRequest", R.id.mainFrameLayout, getSupportFragmentManager());
+                    ChatsManager.openChatScreen(this, getIntent().getExtras().getString("username"), "chatRequest", R.id.mainFrameLayout, getSupportFragmentManager(), this);
                     break;
             }
         }
     }
 
     @Override
-    public void onProfileSaved() {
+    public void onProfileSaved(UserProfile userProfile) {
         fragmentManager.beginTransaction().remove(currentFragment);
         fragmentManager.beginTransaction().replace(R.id.mainFrameLayout, new NewChatAuthFragment()).commit();
-
-        updateTopics(this);
+        topicManager.addTopic(userProfile.name);
         updateNavHeader();
     }
 
     @Override
-    public void onProfileDeleted() {
+    public void onProfileDeleted(String profileName) {
         updateNavHeader();
+
+        //remove subscription from FirebaseMessaging
+        //delete topic
+        topicManager.deleteTopic(profileName);
+    }
+
+    @Override
+    public void onTopicAdded(@NonNull String topicName) {
+        updateTopics(this);
+    }
+
+    @Override
+    public void onTopicDeleted(@NotNull String topicName) {
+        updateTopics(this);
     }
 }

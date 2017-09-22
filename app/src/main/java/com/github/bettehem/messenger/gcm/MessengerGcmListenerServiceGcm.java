@@ -67,7 +67,7 @@ public class MessengerGcmListenerServiceGcm extends FirebaseMessagingService imp
                         myRunnable = new Runnable() {
                             @Override
                             public void run() {
-                                ChatsManager.startNormalChat(getApplication(), chatStartSender);
+                                ChatsManager.startNormalChat(getApplication(), chatStartSender, null);
                             }
                         };
                         mainHandler.post(myRunnable);

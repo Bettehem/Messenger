@@ -11,6 +11,7 @@ import android.view.ViewGroup;
 import com.github.bettehem.androidtools.Preferences;
 import com.github.bettehem.messenger.R;
 import com.github.bettehem.messenger.tools.listeners.SettingsListener;
+import com.github.bettehem.messenger.tools.managers.ProfileManager;
 import com.github.bettehem.messenger.tools.users.UserProfile;
 
 public class SettingsFragment extends Fragment implements View.OnClickListener {
@@ -48,10 +49,7 @@ public class SettingsFragment extends Fragment implements View.OnClickListener {
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.resetProfileButton:
-                Preferences.deleteFile(getActivity(), "UserProfile", "xml");
-                if (settingsListener != null){
-                    settingsListener.onProfileDeleted();
-                }
+                ProfileManager.deleteProfile(getActivity());
                 break;
 
 

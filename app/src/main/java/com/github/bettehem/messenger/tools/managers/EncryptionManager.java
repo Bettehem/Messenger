@@ -23,7 +23,7 @@ public class EncryptionManager {
             byte[] salt = rev.getBytes("UTF-8");
             SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
             //KeySpec spec = new PBEKeySpec(array);
-            KeySpec spec = new PBEKeySpec(array, salt, 65536, 2048);
+            KeySpec spec = new PBEKeySpec(array, salt, 65536, 256);
             SecretKey tmp = factory.generateSecret(spec);
             SecretKey key = new SecretKeySpec(tmp.getEncoded(), "AES");
 
@@ -49,8 +49,7 @@ public class EncryptionManager {
             final String encryptedString = Base64.encodeBase64String(cipher.doFinal(text.getBytes()));
             return encryptedString;
         }
-        catch (Exception e)
-        {
+        catch (Exception e) {
             e.printStackTrace();
             return "null";
         }
@@ -80,11 +79,11 @@ public class EncryptionManager {
     }
 
     public static String scramble(String scramble){
-        return new StringBuilder(scramble).reverse().toString();
+        return Base64.encodeBase64URLSafeString(new StringBuilder(scramble).reverse().toString().getBytes());
     }
 
     public static String unscramble(String scrambledString){
-        return new StringBuilder(scrambledString).reverse().toString();
+        return Base64.encodeBase64URLSafeString(new StringBuilder(scrambledString).reverse().toString().getBytes());
     }
 
     public static String[] unscramble(String[] scrambledStringArray){
