@@ -430,7 +430,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     public void onChatPrepared(ChatPreparerInfo chatPreparerInfo) {
         //update subscribed topics to listen for the encrypted username
-        topicManager.addTopic(chatPreparerInfo.encryptedUsername);
+        topicManager.addTopic(EncryptionManager.createHash(chatPreparerInfo.encryptedUsername));
 
         //update the chat items list
         chatsRecyclerAdapter.setChatItems(ChatsManager.getChatItems(this));
@@ -466,12 +466,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     @Override
-    public void onRequestAccepted(String username, final String key) {
+    public void onRequestAccepted(final String username, final String key) {
         final Context context = this;
         new Thread(){
             @Override
             public void run() {
-                String topic = EncryptionManager.scramble(EncryptionManager.encrypt(key, EncryptionManager.scramble(ProfileManager.getProfile(context).name)));
+                String topic = EncryptionManager.createHash(EncryptionManager.encrypt(Preferences.loadString(context, "iv", username), key, EncryptionManager.scramble(ProfileManager.getProfile(context).name)).get(1));
                 topicManager.addTopic(topic);
             }
         }.run();

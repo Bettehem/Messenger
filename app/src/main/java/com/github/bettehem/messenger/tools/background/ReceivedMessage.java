@@ -20,9 +20,9 @@ public class ReceivedMessage {
 
     public ReceivedMessage (Context context, boolean showDialog, String senderDataString, String rawMessage){
         this.context = context;
-        if (showDialog){
-            dialog(context);
-        }
+        //if (showDialog){
+        //    dialog(context);
+        //}
         this.senderDataString = senderDataString;
         this.rawMessage = rawMessage;
     }
@@ -50,7 +50,7 @@ public class ReceivedMessage {
 
     private void message(String senderDataString, String rawMessage){
         senderData = ChatsManager.getSenderData(context, senderDataString);
-        message = ChatsManager.getMessage(senderData, rawMessage);
+        message = ChatsManager.getMessage(context, senderData, rawMessage);
     }
 
 

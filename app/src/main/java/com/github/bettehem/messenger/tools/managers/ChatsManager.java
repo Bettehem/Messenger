@@ -5,9 +5,8 @@ import android.content.Intent;
 import android.support.annotation.Nullable;
 import android.support.annotation.WorkerThread;
 import android.support.design.widget.Snackbar;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.media.MediaMetadataCompat;
+import android.util.Base64;
 
 import com.github.bettehem.androidtools.Preferences;
 import com.github.bettehem.androidtools.misc.Time;
@@ -17,7 +16,6 @@ import com.github.bettehem.messenger.R;
 import com.github.bettehem.messenger.fragments.ChatScreen;
 import com.github.bettehem.messenger.objects.ChatPreparerInfo;
 import com.github.bettehem.messenger.objects.ChatRequestResponseInfo;
-import com.github.bettehem.messenger.tools.adapters.ChatsRecyclerAdapter;
 import com.github.bettehem.messenger.tools.items.ChatItem;
 import com.github.bettehem.messenger.tools.items.MessageItem;
 import com.github.bettehem.messenger.tools.listeners.ChatItemListener;
@@ -110,10 +108,53 @@ public abstract class ChatsManager {
         return new Sender(userName, isSecretMessage);
     }
 
-    public static String getMessage(Sender senderData, String rawMessage) {
-        String unscrambled = EncryptionManager.unscramble(rawMessage);
-        String message = EncryptionManager.decrypt(EncryptionManager.scramble(SPLITTER.split("-X&X-")[0] + EncryptionManager.scramble(senderData.userName)), unscrambled);
-        return message;
+    public static void sendMessage(final Context context, final String username, final String message){
+        final String receiver = EncryptionManager.createHash(Preferences.loadString(context, "encryptedUsername", username));
+        Thread thread = new Thread() {
+            public void run() {
+
+                //encrypt message
+                String key = EncryptionManager.createHash(Preferences.loadString(context, "localEncryptedUsername", username));
+                String iv = Preferences.loadString(context, "iv", username);
+                String scrambledMessage = EncryptionManager.scramble(message);
+
+                ArrayList<String> encryptedData = EncryptionManager.encrypt(iv, key, scrambledMessage);
+
+
+                //send message
+                HttpPost post = new HttpPost("https://fcm.googleapis.com/fcm/send");
+                JSONObject jsonObject = new JSONObject();
+                try {
+                    jsonObject.put("to", receiver);
+                    JSONObject data = new JSONObject();
+                    data.put("type", "message");
+                    data.put("sender", Preferences.loadString(context, "name", ProfileManager.FILENAME));
+                    //data.put("iv", encryptedData.get(0));
+                    data.put("message", Base64.encodeToString(encryptedData.get(1).getBytes("UTF-8"), EncryptionManager.BASE64_FLAGS));
+                    // TODO: 9/30/17 add support for secret messages
+                    data.put("isSecretMessage", "false");
+                    jsonObject.put("data", data);
+                    StringEntity se = new StringEntity(jsonObject.toString());
+                    se.setContentType(new BasicHeader("Content-Type", "application/json"));
+                    post.setEntity(se);
+                    post.setHeader("Authorization", "key=" + "AIzaSyD8C9exPq2SWMkJUcGc8ZNT8MA9b18rF4I");
+                    HttpClient client = new DefaultHttpClient();
+                    client.execute(post);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+        thread.start();
+    }
+
+    public static String getMessage(Context context, Sender senderData, String rawMessage) {
+        //decrypt message
+
+        String key = EncryptionManager.createHash(Preferences.loadString(context, "encryptedUsername", senderData.userName));
+        //String unscrambled = EncryptionManager.unscramble(rawMessage);
+        String decrypted = EncryptionManager.decrypt(Preferences.loadString(context, "iv", senderData.userName), key, rawMessage);
+        return EncryptionManager.unscramble(decrypted);
     }
 
     // TODO: 1/6/17 finish this method
@@ -147,26 +188,28 @@ public abstract class ChatsManager {
     public static ChatPreparerInfo prepareChat(Context context, FragmentManager fragmentManager, String username, String password) {
 
         //generate key from password
-        String key = EncryptionManager.createKey(password);
+        String key = EncryptionManager.createHash(password);
 
         //encrypt local username
         String scrambledUsername = EncryptionManager.scramble(Preferences.loadString(context, "name", ProfileManager.FILENAME));
-        String encryptedUsername = EncryptionManager.encrypt(key, scrambledUsername);
-        String readyUsername = EncryptionManager.scramble(encryptedUsername);
+        ArrayList<String> encryptedUsername = EncryptionManager.encrypt(key, scrambledUsername);
+        //String readyUsername = EncryptionManager.scramble(encryptedUsername);
 
 
         //save local username
-        Preferences.saveString(context, "localEncryptedUsername", readyUsername, username);
+        Preferences.saveString(context, "localEncryptedUsername", encryptedUsername.get(1), username);
+        //save iv
+        Preferences.saveString(context, "iv", encryptedUsername.get(0), username);
 
 
         //encrypt username
         scrambledUsername = EncryptionManager.scramble(username);
-        encryptedUsername = EncryptionManager.encrypt(key, scrambledUsername);
-        readyUsername = EncryptionManager.scramble(encryptedUsername);
+        encryptedUsername = EncryptionManager.encrypt(encryptedUsername.get(0), key, scrambledUsername);
+        //readyUsername = EncryptionManager.scramble(encryptedUsername);
 
 
         //save username
-        Preferences.saveString(context, "encryptedUsername", readyUsername, username);
+        Preferences.saveString(context, "encryptedUsername", encryptedUsername.get(1), username);
 
         // TODO: 8/11/17 remove hard-coded strings
         //save a chat item
@@ -176,11 +219,11 @@ public abstract class ChatsManager {
             saveChatItem(context, username, "Pending...", new Time(Calendar.getInstance()));
         }
 
-        sendRequest(context, username);
+        sendRequest(context, encryptedUsername.get(0), username);
 
         //encrypt your own username
         UserProfile profile = ProfileManager.getProfile(context);
-        String encryptedProfilename = EncryptionManager.scramble(EncryptionManager.encrypt(key, EncryptionManager.scramble(profile.name)));
+        String encryptedProfilename = EncryptionManager.encrypt(encryptedUsername.get(0), key, EncryptionManager.scramble(profile.name)).get(1);
 
         return new ChatPreparerInfo(username, "pending", encryptedProfilename, R.id.mainFrameLayout, fragmentManager);
     }
@@ -208,18 +251,19 @@ public abstract class ChatsManager {
      * @param context  Used to get needed information from SharedPreferences.
      * @param username The chat request is sent to the given username.
      */
-    private static void sendRequest(final Context context, final String username) {
+    private static void sendRequest(final Context context, final String iv, final String username) {
         final String receiver = username.replace(" ", SPLITTER);
         Thread thread = new Thread() {
             public void run() {
                 HttpPost post = new HttpPost("https://fcm.googleapis.com/fcm/send");
                 JSONObject jsonObject = new JSONObject();
                 try {
-                    jsonObject.put("to", "/topics/" + receiver);
+                    jsonObject.put("to", receiver);
                     JSONObject data = new JSONObject();
                     data.put("type", "chatRequest");
                     data.put("sender", Preferences.loadString(context, "name", ProfileManager.FILENAME));
-                    data.put("key", Preferences.loadString(context, "encryptedUsername", username));
+                    data.put("key", Preferences.loadString(context, "localEncryptedUsername", username));
+                    data.put("iv", iv);
                     jsonObject.put("data", data);
                     StringEntity se = new StringEntity(jsonObject.toString());
                     se.setContentType(new BasicHeader("Content-Type", "application/json"));
@@ -236,7 +280,7 @@ public abstract class ChatsManager {
     }
 
 
-    public static void handleChatRequest(Context context, final String sender, final String key) {
+    public static void handleChatRequest(Context context, final String sender, final String key, final String iv) {
         if (Preferences.loadString(context, "currentFragment").contentEquals("ChatScreen") && Preferences.loadString(context, "username", "CurrentChat").contentEquals(sender)) {
             //User has the chat open
             // TODO: 8/11/17 finish this
@@ -257,6 +301,9 @@ public abstract class ChatsManager {
             //save the username hash
             Preferences.saveString(context, "encryptedUsername", key, sender);
 
+            //save iv
+            Preferences.saveString(context, "iv", iv, sender);
+
             if (Preferences.loadBoolean(context, "appVisible")) {
                 //if the app is visible, update the chatItems
                 MainActivity.chatsRecyclerAdapter.setChatItems(getChatItems(context));
@@ -272,25 +319,27 @@ public abstract class ChatsManager {
 
     public static void responseToRequest(final Context context, final boolean acceptRequest, final String username, final String password, @Nullable ChatItemListener listener) {
         //generate key from password
-        String key = EncryptionManager.createKey(password);
+        String key = EncryptionManager.createHash(password);
+        //get iv
+        String iv = Preferences.loadString(context, "iv", username);
 
         //encrypt local username
         String scrambledUsername = EncryptionManager.scramble(Preferences.loadString(context, "name", ProfileManager.FILENAME));
-        String encryptedUsername = EncryptionManager.encrypt(key, scrambledUsername);
-        String readyUsername = EncryptionManager.scramble(encryptedUsername);
+        ArrayList<String> encryptedUsername = EncryptionManager.encrypt(iv, key, scrambledUsername);
+        //String readyUsername = EncryptionManager.scramble(encryptedUsername);
 
         //save encrypted username
-        Preferences.saveString(context, "localEncryptedUsername", readyUsername, username);
+        Preferences.saveString(context, "localEncryptedUsername", encryptedUsername.get(1), username);
 
 
 
         //encrypt username
         scrambledUsername = EncryptionManager.scramble(username);
-        encryptedUsername = EncryptionManager.encrypt(key, scrambledUsername);
-        readyUsername = EncryptionManager.scramble(encryptedUsername);
+        encryptedUsername = EncryptionManager.encrypt(iv, key, scrambledUsername);
+        //readyUsername = EncryptionManager.scramble(encryptedUsername);
 
         //save username
-        Preferences.saveString(context, "encryptedUsername", readyUsername, username);
+        Preferences.saveString(context, "encryptedUsername", encryptedUsername.get(1), username);
 
 
 
@@ -299,20 +348,22 @@ public abstract class ChatsManager {
         }
 
         //Send response to the chat request
-        final String receiver = readyUsername;
-        final String finalReadyUsername = readyUsername;
+        final String receiver = username;
+        final String finalReadyUsername = encryptedUsername.get(1);
+        final ArrayList<String> finalEncryptedUsername = encryptedUsername;
         Thread thread = new Thread() {
             public void run() {
                 HttpPost post = new HttpPost("https://fcm.googleapis.com/fcm/send");
                 JSONObject jsonObject = new JSONObject();
                 try {
-                    jsonObject.put("to", "/topics/" + receiver);
+                    jsonObject.put("to", receiver);
                     JSONObject data = new JSONObject();
 
 
                     data.put("type", "requestResponse");
                     data.put("sender", Preferences.loadString(context, "name", ProfileManager.FILENAME));
                     data.put("requestAccepted", String.valueOf(acceptRequest));
+                    //data.put("iv", finalEncryptedUsername.get(0));
                     data.put("password", finalReadyUsername);
 
 
@@ -351,13 +402,13 @@ public abstract class ChatsManager {
     public static void startChat(final Context context, final boolean correctPassword, final String username, int fragmentId, FragmentManager fragmentManager, ChatItemListener listener) {
 
         //Send info to other user on starting the chat
-        final String receiver = Preferences.loadString(context, "encryptedUsername", username);
+        final String receiver = EncryptionManager.createHash(Preferences.loadString(context, "encryptedUsername", username));
         Thread thread = new Thread() {
             public void run() {
                 HttpPost post = new HttpPost("https://fcm.googleapis.com/fcm/send");
                 JSONObject jsonObject = new JSONObject();
                 try {
-                    jsonObject.put("to", "/topics/" + receiver);
+                    jsonObject.put("to", receiver);
                     JSONObject data = new JSONObject();
                     data.put("type", "startChat");
                     data.put("correctPassword", String.valueOf(correctPassword));
@@ -420,10 +471,10 @@ public abstract class ChatsManager {
 
     private static String getUserName(Context context, String senderData) {
         String user_raw = senderData.split(SPLITTER)[0];
-        String user_unscrambled = EncryptionManager.unscramble(user_raw);
-        String userName = EncryptionManager.unscramble(EncryptionManager.decrypt(Preferences.loadString(context, user_raw, "ChatsConfig"), user_unscrambled));
+        //String user_unscrambled = EncryptionManager.unscramble(user_raw);
+        //String userName = EncryptionManager.unscramble(EncryptionManager.decrypt(Preferences.loadString(context, user_raw, "ChatsConfig"), user_unscrambled));
 
-        return userName;
+        return user_raw;
     }
 
     private static void setChatStatus(Context context, String status, String username) {

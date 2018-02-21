@@ -37,6 +37,7 @@ public class ChatScreen extends Fragment implements View.OnClickListener {
 
     private AppCompatImageButton emojiSelectionButton;
     private AppCompatEditText messageEditText;
+    private AppCompatButton sendMessageButton;
     private RecyclerView messageRecycler;
 
     private ChatItemListener listener;
@@ -83,10 +84,12 @@ public class ChatScreen extends Fragment implements View.OnClickListener {
         acceptRequestButton = (AppCompatButton) view.findViewById(R.id.acceptChatRequestButton);
         rejectRequestButton = (AppCompatButton) view.findViewById(R.id.rejectChatRequestButton);
         emojiSelectionButton = (AppCompatImageButton) view.findViewById(R.id.chatScreenEmojiSelectButton);
+        sendMessageButton = (AppCompatButton) view.findViewById(R.id.chatScreenSendMessageButton);
 
         acceptRequestButton.setOnClickListener(this);
         rejectRequestButton.setOnClickListener(this);
         emojiSelectionButton.setOnClickListener(this);
+        sendMessageButton.setOnClickListener(this);
     }
 
     private void editTexts(){
@@ -139,6 +142,10 @@ public class ChatScreen extends Fragment implements View.OnClickListener {
 
             case R.id.rejectChatRequestButton:
                 ChatsManager.responseToRequest(getActivity(), false, username, "", listener);
+                break;
+
+            case R.id.chatScreenSendMessageButton:
+                ChatsManager.sendMessage(getActivity(), username, messageEditText.getText().toString());
                 break;
         }
     }

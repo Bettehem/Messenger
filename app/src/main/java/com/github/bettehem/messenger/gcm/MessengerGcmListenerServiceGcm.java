@@ -1,12 +1,6 @@
 package com.github.bettehem.messenger.gcm;
 
-import android.content.Intent;
 import android.os.Handler;
-import android.os.Looper;
-
-import com.github.bettehem.androidtools.notification.CustomNotification;
-import com.github.bettehem.messenger.MainActivity;
-import com.github.bettehem.messenger.R;
 import com.github.bettehem.messenger.tools.background.ReceivedMessage;
 import com.github.bettehem.messenger.tools.background.RequestResponse;
 import com.github.bettehem.messenger.tools.listeners.GcmReceivedListener;
@@ -17,12 +11,12 @@ import com.google.firebase.messaging.RemoteMessage;
 
 import java.util.Map;
 
+import static com.github.bettehem.messenger.tools.ui.CustomNotificationKt.notification;
+
 public class MessengerGcmListenerServiceGcm extends FirebaseMessagingService implements GcmReceivedListener {
-    private static final String TOPIC_START = "/topics/";
 
     @Override
     public void onMessageReceived(RemoteMessage message){
-        String from = message.getFrom();
         final Map data = message.getData();
 
         String type = (String) data.get("type");
@@ -34,22 +28,19 @@ public class MessengerGcmListenerServiceGcm extends FirebaseMessagingService imp
             switch (type.toLowerCase()){
 
                 case "notification":
-                    notification((String)  data.get("title"), (String) data.get("message"), false);
+                    notification(getApplicationContext(), (String)  data.get("title"), (String) data.get("message"), false);
                     break;
 
                 case "chatrequest":
                     final String requestSender = getSender((String) data.get("sender"));
-                    myRunnable = new Runnable() {
-                        @Override
-                        public void run() {
-                            ChatsManager.handleChatRequest(getApplicationContext(), requestSender, (String) data.get("key"));
-                        }
-                    };
+                    myRunnable = () -> ChatsManager.handleChatRequest(getApplicationContext(), requestSender, (String) data.get("key"), (String) data.get("iv"));
                     mainHandler.post(myRunnable);
                     break;
 
                 case "message":
-                    new ReceivedMessage(getApplicationContext(), true, (String) data.get("sender"), (String) data.get("message"));
+                    ReceivedMessage receivedMessage = new ReceivedMessage(getApplicationContext(), true, (String) data.get("sender") + ChatsManager.SPLITTER + data.get("isSecretMessage"), (String) data.get("message"));
+                    receivedMessage.setMessageListener(this);
+                    receivedMessage.getMessage();
                     break;
 
                 case "requestresponse":
@@ -64,12 +55,7 @@ public class MessengerGcmListenerServiceGcm extends FirebaseMessagingService imp
                     final String chatStartSender = getSender((String) data.get("sender"));
                     boolean correctPassword = Boolean.valueOf((String) data.get("correctPassword"));
                     if (correctPassword){
-                        myRunnable = new Runnable() {
-                            @Override
-                            public void run() {
-                                ChatsManager.startNormalChat(getApplication(), chatStartSender, null);
-                            }
-                        };
+                        myRunnable = () -> ChatsManager.startNormalChat(getApplication(), chatStartSender, null);
                         mainHandler.post(myRunnable);
 
                     }else {
@@ -81,18 +67,6 @@ public class MessengerGcmListenerServiceGcm extends FirebaseMessagingService imp
         }
     }
 
-
-    private void notification(String title, String message, boolean isSecretMessage){
-        //TODO: implement user icons
-        //TODO: add settings check if has notifications disabled
-        if (isSecretMessage){
-            //TODO: Remove hard-coded string
-            CustomNotification.make(getApplicationContext(), R.mipmap.ic_launcher, title, "New Message from " + title.split("enger - ")[1], new Intent(this, MainActivity.class), false, true).show();
-        }else{
-            CustomNotification.make(getApplicationContext(), R.mipmap.ic_launcher, title, message, new Intent(this, MainActivity.class), false, true).show();
-        }
-    }
-
     private String getSender(String sender){
         return sender.contains(ChatsManager.SPLITTER) ? sender.replace(ChatsManager.SPLITTER, " ") : sender;
     }
@@ -101,7 +75,6 @@ public class MessengerGcmListenerServiceGcm extends FirebaseMessagingService imp
 
     @Override
     public void onMessageReceived(Sender senderData, String message) {
-        Looper.prepare();
-        notification("Messenger - " + senderData.userName, message, senderData.isSecretMessage);
+        notification(getApplicationContext(), "Messenger - " + senderData.userName, message, senderData.isSecretMessage);
     }
 }
