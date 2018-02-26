@@ -35,7 +35,7 @@ fun notification(context: Context, title: String, message: String, isSecretMessa
         val notificationBuilder = NotificationCompat.Builder(context, channelId)
         notificationBuilder.setSmallIcon(R.mipmap.ic_launcher)
         notificationBuilder.setContentTitle("Messenger")
-        notificationBuilder.setContentText("New HandyCall Message!")
+        notificationBuilder.setContentText("New Message!")
         notificationBuilder.setChannelId(channelId)
         notificationBuilder.setContentIntent(PendingIntent.getActivity(context, context.hashCode(), Intent(context, MainActivity::class.java), PendingIntent.FLAG_ONE_SHOT))
 

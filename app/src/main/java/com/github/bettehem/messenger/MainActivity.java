@@ -2,6 +2,7 @@ package com.github.bettehem.messenger;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
@@ -22,11 +23,9 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.animation.OvershootInterpolator;
 import android.widget.RelativeLayout;
-import android.widget.Toast;
 import android.widget.ViewFlipper;
 
 import com.github.bettehem.androidtools.Preferences;
-import com.github.bettehem.androidtools.dialog.CustomAlertDialog;
 import com.github.bettehem.messenger.fragments.NewChatAuthFragment;
 import com.github.bettehem.messenger.fragments.NewProfileFragment;
 import com.github.bettehem.messenger.fragments.SettingsFragment;
@@ -47,18 +46,12 @@ import com.github.bettehem.messenger.tools.managers.TopicManager;
 import com.github.bettehem.messenger.tools.users.UserProfile;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.AuthResult;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.rockerhieu.emojicon.EmojiconTextView;
 
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, View.OnClickListener, ChatRequestListener, ChatItemListener, ProfileListener, View.OnLongClickListener, TopicListener, SettingsListener {
 
@@ -77,6 +70,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public static ViewFlipper mainViewFlipper;
     public static ChatsRecyclerAdapter chatsRecyclerAdapter;
     public static ChatRequestListener chatRequestListener;
+    public static ChatItemListener chatItemListener;
     public static RelativeLayout mainRelativeLayout;
     private NavigationView navigationView;
     private EmojiconTextView emojiTextView;
@@ -159,6 +153,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private void listeners(){
         chatRequestListener = this;
+        chatItemListener = this;
         ProfileManager.setProfileListener(this);
         RequestResponse.setRequestListener(this);
     }
@@ -475,6 +470,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 topicManager.addTopic(topic);
             }
         }.run();
+    }
+
+    @Override
+    public void onChatItemListUpdated(ArrayList<ChatItem> newItems) {
+        Thread t = new Thread(){
+            @Override
+            public void run() {
+                runOnUiThread(() -> chatsRecyclerAdapter.setChatItems(newItems));
+            }
+        };
+        t.start();
     }
 
     private void checkExtras(){
