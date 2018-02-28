@@ -134,7 +134,7 @@ public class EncryptionManager {
             cipher.init(Cipher.DECRYPT_MODE, originalKey, new IvParameterSpec(ivBytes));
 
             //final String decryptedString = new String(Base64.decode(cipher.doFinal(Base64.decode(text, BASE64_FLAGS)), BASE64_FLAGS));
-            final String decryptedString = new String(Base64.decodeBase64(cipher.doFinal(text.getBytes())));
+            final String decryptedString = new String(cipher.doFinal(Base64.decodeBase64(text.getBytes())));
             return decryptedString;
         }
         catch (Exception e)
