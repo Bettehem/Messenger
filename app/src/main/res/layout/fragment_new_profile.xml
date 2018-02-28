@@ -68,7 +68,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="13">
 
-                    <android.support.v7.widget.AppCompatEditText
+                    <android.support.design.widget.TextInputEditText
                         android:id="@+id/fragmentNewProfileUserNameEditText"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -99,7 +99,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="13">
 
-                    <android.support.v7.widget.AppCompatEditText
+                    <android.support.design.widget.TextInputEditText
                         android:id="@+id/fragmentNewProfileStatusEditText"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"

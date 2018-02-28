@@ -64,7 +64,9 @@ public class ChatPreparer {
             if (chatRequestListener != null){
                 chatRequestListener.onChatPrepared(chatPreparerInfo);
             }
-            progressDialog.dismiss();
+            if (progressDialog != null){
+                progressDialog.dismiss();
+            }
         }
     }
 }

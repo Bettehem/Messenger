@@ -34,8 +34,8 @@ fun notification(context: Context, title: String, message: String, isSecretMessa
         //create notification
         val notificationBuilder = NotificationCompat.Builder(context, channelId)
         notificationBuilder.setSmallIcon(R.mipmap.ic_launcher)
-        notificationBuilder.setContentTitle("Messenger")
-        notificationBuilder.setContentText("New HandyCall Message!")
+        notificationBuilder.setContentTitle("New Message from " + title.split("enger - ".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()[1])
+        notificationBuilder.setContentText(message)
         notificationBuilder.setChannelId(channelId)
         notificationBuilder.setContentIntent(PendingIntent.getActivity(context, context.hashCode(), Intent(context, MainActivity::class.java), PendingIntent.FLAG_ONE_SHOT))
 
@@ -48,9 +48,9 @@ fun notification(context: Context, title: String, message: String, isSecretMessa
         //TODO: add settings check if has notifications disabled
         if (isSecretMessage) {
             //TODO: Remove hard-coded string
-            CustomNotification.make(context, R.mipmap.ic_launcher, title, "New Message from " + title.split("enger - ".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()[1], Intent(context, MainActivity::class.java), false, true).show()
+            CustomNotification.make(context, R.mipmap.ic_launcher, "New Message from " + title.split("enger - ".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()[1], message, Intent(context, MainActivity::class.java), false, true).show()
         } else {
-            CustomNotification.make(context, R.mipmap.ic_launcher, title, message, Intent(context, MainActivity::class.java), false, true).show()
+            CustomNotification.make(context, R.mipmap.ic_launcher, "New Message from " + title.split("enger - ".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()[1], message, Intent(context, MainActivity::class.java), false, true).show()
         }
     }
 }

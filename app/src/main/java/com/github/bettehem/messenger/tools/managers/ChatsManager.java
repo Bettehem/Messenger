@@ -2,11 +2,13 @@ package com.github.bettehem.messenger.tools.managers;
 
 import android.content.Context;
 import android.content.Intent;
+import android.net.http.AndroidHttpClient;
+import android.os.Looper;
 import android.support.annotation.Nullable;
 import android.support.annotation.WorkerThread;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.FragmentManager;
-import android.util.Base64;
+//import android.util.Base64;
 
 import com.github.bettehem.androidtools.Preferences;
 import com.github.bettehem.androidtools.misc.Time;
@@ -21,7 +23,9 @@ import com.github.bettehem.messenger.tools.items.MessageItem;
 import com.github.bettehem.messenger.tools.listeners.ChatItemListener;
 import com.github.bettehem.messenger.tools.users.Sender;
 import com.github.bettehem.messenger.tools.users.UserProfile;
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 
+import org.apache.commons.codec.android.binary.Base64;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
@@ -29,11 +33,24 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicHeader;
 import org.json.JSONObject;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Calendar;
 
 public abstract class ChatsManager {
     public static final String SPLITTER = "_kjhas3ng7vb3b3a-XYZYX-di8x888xgwbkwv0vaw3pxds22_";
+
+    private static String getAccessToken() throws IOException {
+        GoogleCredential googleCredential = GoogleCredential
+                .fromStream(new FileInputStream("Messenger-sKEY.json"));
+        googleCredential.refreshToken();
+        return googleCredential.getAccessToken();
+    }
+
 
     public static ArrayList<ChatItem> getChatItems(Context context) {
 
@@ -122,20 +139,21 @@ public abstract class ChatsManager {
 
 
                 //send message
-                HttpPost post = new HttpPost("https://fcm.googleapis.com/fcm/send");
+                HttpPost post = new HttpPost("https://gcm-http.googleapis.com/gcm/send");
                 JSONObject jsonObject = new JSONObject();
                 try {
-                    jsonObject.put("to", receiver);
+                    jsonObject.put("to", "/topics/" + receiver);
                     JSONObject data = new JSONObject();
                     data.put("type", "message");
                     data.put("sender", Preferences.loadString(context, "name", ProfileManager.FILENAME));
                     //data.put("iv", encryptedData.get(0));
-                    data.put("message", Base64.encodeToString(encryptedData.get(1).getBytes("UTF-8"), EncryptionManager.BASE64_FLAGS));
+                    //data.put("message", Base64.encodeToString(encryptedData.get(1).getBytes("UTF-8"), EncryptionManager.BASE64_FLAGS));
+                    data.put("message", encryptedData.get(1));
                     // TODO: 9/30/17 add support for secret messages
                     data.put("isSecretMessage", "false");
                     jsonObject.put("data", data);
                     StringEntity se = new StringEntity(jsonObject.toString());
-                    se.setContentType(new BasicHeader("Content-Type", "application/json"));
+                    se.setContentType(new BasicHeader("Content-Type", "application/json; UTF-8"));
                     post.setEntity(se);
                     post.setHeader("Authorization", "key=" + "AIzaSyD8C9exPq2SWMkJUcGc8ZNT8MA9b18rF4I");
                     HttpClient client = new DefaultHttpClient();
@@ -255,22 +273,73 @@ public abstract class ChatsManager {
         final String receiver = username.replace(" ", SPLITTER);
         Thread thread = new Thread() {
             public void run() {
-                HttpPost post = new HttpPost("https://fcm.googleapis.com/fcm/send");
-                JSONObject jsonObject = new JSONObject();
                 try {
-                    jsonObject.put("to", receiver);
+
+                    //prepare data for sending
+                    /*
+                    JSONObject jsonObject = new JSONObject();
+                    JSONObject message = new JSONObject();
+                    message.put("topic", receiver);
+                    JSONObject data = new JSONObject();
+                    data.put("type", "chatRequest");
+                    data.put("sender", Preferences.loadString(context, "name", ProfileManager.FILENAME));
+                    data.put("key", Preferences.loadString(context, "localEncryptedUsername", username));
+                    data.put("iv", iv);
+                    message.put("data", data);
+                    jsonObject.put("message", message);
+                    */
+
+
+                    JSONObject jsonObject = new JSONObject();
+                    jsonObject.put("to", "/topics/" + receiver);
                     JSONObject data = new JSONObject();
                     data.put("type", "chatRequest");
                     data.put("sender", Preferences.loadString(context, "name", ProfileManager.FILENAME));
                     data.put("key", Preferences.loadString(context, "localEncryptedUsername", username));
                     data.put("iv", iv);
                     jsonObject.put("data", data);
+                    HttpPost post = new HttpPost("https://gcm-http.googleapis.com/gcm/send");
+
                     StringEntity se = new StringEntity(jsonObject.toString());
-                    se.setContentType(new BasicHeader("Content-Type", "application/json"));
+                    se.setContentType(new BasicHeader("Content-Type", "application/json; UTF-8"));
                     post.setEntity(se);
-                    post.setHeader("Authorization", "key=" + "AIzaSyD8C9exPq2SWMkJUcGc8ZNT8MA9b18rF4I");
+                    post.setHeader("Authorization", "key= " + "AIzaSyD8C9exPq2SWMkJUcGc8ZNT8MA9b18rF4I");
                     HttpClient client = new DefaultHttpClient();
                     client.execute(post);
+
+
+
+
+
+
+
+
+
+
+
+                    /*
+                    JSONObject jsonObject = new JSONObject();
+                    jsonObject.put("to", "/topics/" + receiver);
+                    JSONObject data = new JSONObject();
+                    data.put("type", "chatRequest");
+                    data.put("sender", Preferences.loadString(context, "name", ProfileManager.FILENAME));
+                    data.put("key", Preferences.loadString(context, "localEncryptedUsername", username));
+                    data.put("iv", iv);
+                    jsonObject.put("data", data);
+                    //address for connection
+                    URL url = new URL("https://gcm-http.googleapis.com/gcm/send");
+                    //open connection
+                    HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+                    urlConnection.setRequestMethod("POST");
+                    urlConnection.setRequestProperty("Content-Type", "application/json; UTF-8");
+                    urlConnection.setRequestProperty("Authorization", "key=" + "AIzaSyD8C9exPq2SWMkJUcGc8ZNT8MA9b18rF4I");
+
+                    OutputStreamWriter outputStreamWriter = new OutputStreamWriter(urlConnection.getOutputStream(), "UTF-8");
+                    outputStreamWriter.write(jsonObject.toString());
+                    outputStreamWriter.flush();
+                    outputStreamWriter.close();
+                    urlConnection.disconnect();
+                    */
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -353,10 +422,10 @@ public abstract class ChatsManager {
         final ArrayList<String> finalEncryptedUsername = encryptedUsername;
         Thread thread = new Thread() {
             public void run() {
-                HttpPost post = new HttpPost("https://fcm.googleapis.com/fcm/send");
+                HttpPost post = new HttpPost("https://gcm-http.googleapis.com/gcm/send");
                 JSONObject jsonObject = new JSONObject();
                 try {
-                    jsonObject.put("to", receiver);
+                    jsonObject.put("to", "/topics/" + receiver);
                     JSONObject data = new JSONObject();
 
 
@@ -369,7 +438,7 @@ public abstract class ChatsManager {
 
                     jsonObject.put("data", data);
                     StringEntity se = new StringEntity(jsonObject.toString());
-                    se.setContentType(new BasicHeader("Content-Type", "application/json"));
+                    se.setContentType(new BasicHeader("Content-Type", "application/json; UTF-8"));
                     post.setEntity(se);
                     post.setHeader("Authorization", "key=" + "AIzaSyD8C9exPq2SWMkJUcGc8ZNT8MA9b18rF4I");
                     HttpClient client = new DefaultHttpClient();
@@ -405,17 +474,17 @@ public abstract class ChatsManager {
         final String receiver = EncryptionManager.createHash(Preferences.loadString(context, "encryptedUsername", username));
         Thread thread = new Thread() {
             public void run() {
-                HttpPost post = new HttpPost("https://fcm.googleapis.com/fcm/send");
+                HttpPost post = new HttpPost("https://gcm-http.googleapis.com/gcm/send");
                 JSONObject jsonObject = new JSONObject();
                 try {
-                    jsonObject.put("to", receiver);
+                    jsonObject.put("to", "/topics/" + receiver);
                     JSONObject data = new JSONObject();
                     data.put("type", "startChat");
                     data.put("correctPassword", String.valueOf(correctPassword));
                     data.put("sender", Preferences.loadString(context, "name", ProfileManager.FILENAME));
                     jsonObject.put("data", data);
                     StringEntity se = new StringEntity(jsonObject.toString());
-                    se.setContentType(new BasicHeader("Content-Type", "application/json"));
+                    se.setContentType(new BasicHeader("Content-Type", "application/json; UTF-8"));
                     post.setEntity(se);
                     post.setHeader("Authorization", "key=" + "AIzaSyD8C9exPq2SWMkJUcGc8ZNT8MA9b18rF4I");
                     HttpClient client = new DefaultHttpClient();
@@ -535,6 +604,6 @@ public abstract class ChatsManager {
         }
 
         //update list
-        MainActivity.chatsRecyclerAdapter.setChatItems(getChatItems(context));
+        MainActivity.chatItemListener.onChatItemListUpdated(getChatItems(context));
     }
 }
