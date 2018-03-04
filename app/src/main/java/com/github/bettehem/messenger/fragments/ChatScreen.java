@@ -7,6 +7,7 @@ import android.support.v7.widget.AppCompatButton;
 import android.support.v7.widget.AppCompatEditText;
 import android.support.v7.widget.AppCompatImageButton;
 import android.support.v7.widget.AppCompatTextView;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,10 +17,17 @@ import android.widget.ViewFlipper;
 import com.github.bettehem.androidtools.Preferences;
 import com.github.bettehem.messenger.MainActivity;
 import com.github.bettehem.messenger.R;
+import com.github.bettehem.messenger.gcm.MessengerGcmListenerServiceGcm;
+import com.github.bettehem.messenger.tools.adapters.ChatsScreenMessageAdapter;
+import com.github.bettehem.messenger.tools.items.MessageItem;
 import com.github.bettehem.messenger.tools.listeners.ChatItemListener;
+import com.github.bettehem.messenger.tools.listeners.MessageItemListener;
 import com.github.bettehem.messenger.tools.managers.ChatsManager;
 
-public class ChatScreen extends Fragment implements View.OnClickListener {
+import java.util.ArrayList;
+import java.util.Objects;
+
+public class ChatScreen extends Fragment implements View.OnClickListener, MessageItemListener {
 
     private static final int CHAT_VIEW = 0;
     private static final int PENDING_VIEW = 1;
@@ -39,8 +47,10 @@ public class ChatScreen extends Fragment implements View.OnClickListener {
     private AppCompatEditText messageEditText;
     private AppCompatButton sendMessageButton;
     private RecyclerView messageRecycler;
+    private ChatsScreenMessageAdapter messageAdapter;
 
-    private ChatItemListener listener;
+    private ChatItemListener chatItemListener;
+    private MessageItemListener messageItemListener;
 
 
     @Nullable
@@ -54,6 +64,9 @@ public class ChatScreen extends Fragment implements View.OnClickListener {
 
         //set the current username
         username = Preferences.loadString(getActivity(), "username", "CurrentChat");
+
+        messageItemListener = this;
+        MessengerGcmListenerServiceGcm.setMessageItemListener(messageItemListener);
 
         setup();
 
@@ -100,6 +113,13 @@ public class ChatScreen extends Fragment implements View.OnClickListener {
     private void recyclers(){
         messageRecycler = (RecyclerView) view.findViewById(R.id.chatScreenMessageRecycler);
 
+        messageAdapter = new ChatsScreenMessageAdapter(getActivity());
+        LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity());
+        layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
+
+        messageRecycler.setLayoutManager(layoutManager);
+        messageRecycler.setHasFixedSize(true);
+        messageRecycler.setAdapter(messageAdapter);
     }
 
 
@@ -112,6 +132,9 @@ public class ChatScreen extends Fragment implements View.OnClickListener {
             case "normal":
                 //show normal chat
                 chatViews.setDisplayedChild(CHAT_VIEW);
+                ArrayList<MessageItem> items = ChatsManager.getMessageItems(getActivity(), username);
+                messageAdapter.setMessageItems(items);
+                messageRecycler.scrollToPosition(items.size() - 1);
                 break;
 
             case "pending":
@@ -129,7 +152,7 @@ public class ChatScreen extends Fragment implements View.OnClickListener {
     }
 
     public void setChatItemListener(ChatItemListener chatItemListener){
-        listener = chatItemListener;
+        this.chatItemListener = chatItemListener;
     }
 
     @Override
@@ -137,17 +160,28 @@ public class ChatScreen extends Fragment implements View.OnClickListener {
         switch (v.getId()){
             case R.id.acceptChatRequestButton:
                 //TODO: Add check for empty password
-                ChatsManager.responseToRequest(getActivity(), true, username, passwordEditText.getText().toString(), listener);
+                ChatsManager.responseToRequest(getActivity(), true, username, passwordEditText.getText().toString(), chatItemListener);
                 break;
 
             case R.id.rejectChatRequestButton:
-                ChatsManager.responseToRequest(getActivity(), false, username, "", listener);
+                ChatsManager.responseToRequest(getActivity(), false, username, "", chatItemListener);
                 break;
 
             case R.id.chatScreenSendMessageButton:
-                ChatsManager.sendMessage(getActivity(), username, messageEditText.getText().toString());
+                ChatsManager.sendMessage(getActivity(), username, messageEditText.getText().toString(), messageItemListener);
+                messageAdapter.setMessageItems(ChatsManager.getMessageItems(getActivity(), username));
                 messageEditText.setText("");
                 break;
+        }
+    }
+
+    @Override
+    public void onMessageListUpdated() {
+        if (Preferences.loadBoolean(Objects.requireNonNull(getActivity()), "appVisible")){
+            ArrayList<MessageItem> items = ChatsManager.getMessageItems(getActivity(), username);
+            messageAdapter.setMessageItems(items);
+            messageRecycler.scrollToPosition(items.size() - 1);
+            ChatsManager.editChatItem(getActivity(), username, items.get(items.size() - 1).mMessage, items.get(items.size() - 1).mTime);
         }
     }
 }
