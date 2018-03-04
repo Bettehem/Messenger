@@ -374,7 +374,9 @@ public abstract class ChatsManager {
 
             if (Preferences.loadBoolean(context, "appVisible")) {
                 //if the app is visible, update the chatItems
-                MainActivity.chatsRecyclerAdapter.setChatItems(getChatItems(context));
+                if (MainActivity.chatsRecyclerAdapter != null){
+                    MainActivity.chatsRecyclerAdapter.setChatItems(getChatItems(context));
+                }
             } else {
                 Intent intent = new Intent(context, MainActivity.class);
                 intent.putExtra("type", "chatRequest");

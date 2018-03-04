@@ -8,7 +8,7 @@ This app only requires you to select yourself a username and since the app doesn
 
 ### Starting a chat
 To start a chat after creating yourself a profile tap the + button at the bottom of the screen.
-Next you need to enter the usename of your friend you want to chat with. Note that USERNAMES ARE CASE-SENSITIVE!
+Next you need to enter the username of your friend you want to chat with. Note that USERNAMES ARE CASE-SENSITIVE!
 Then enter a password you have agreed on with your friend, and press the "Start Chat" -button
 
 After that, a chat request will be sent to your friend, who then has to enter the correct password, and press accept.
