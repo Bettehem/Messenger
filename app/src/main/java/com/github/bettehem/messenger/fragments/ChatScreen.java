@@ -146,6 +146,7 @@ public class ChatScreen extends Fragment implements View.OnClickListener {
 
             case R.id.chatScreenSendMessageButton:
                 ChatsManager.sendMessage(getActivity(), username, messageEditText.getText().toString());
+                messageEditText.setText("");
                 break;
         }
     }

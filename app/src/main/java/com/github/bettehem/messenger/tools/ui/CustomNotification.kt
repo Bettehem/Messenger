@@ -12,7 +12,7 @@ import com.github.bettehem.androidtools.notification.CustomNotification
 import com.github.bettehem.messenger.MainActivity
 import com.github.bettehem.messenger.R
 
-fun notification(context: Context, title: String, message: String, isSecretMessage: Boolean) {
+@JvmOverloads fun notification(context: Context, title: String, message: String, isSecretMessage: Boolean, intent : Intent = Intent(context, MainActivity::class.java)) {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
         val notificationManager: NotificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val channelId = "messenger_notification"
@@ -34,10 +34,11 @@ fun notification(context: Context, title: String, message: String, isSecretMessa
         //create notification
         val notificationBuilder = NotificationCompat.Builder(context, channelId)
         notificationBuilder.setSmallIcon(R.mipmap.ic_launcher)
-        notificationBuilder.setContentTitle("New Message from " + title.split("enger - ".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()[1])
+        notificationBuilder.setContentTitle(title)
         notificationBuilder.setContentText(message)
         notificationBuilder.setChannelId(channelId)
-        notificationBuilder.setContentIntent(PendingIntent.getActivity(context, context.hashCode(), Intent(context, MainActivity::class.java), PendingIntent.FLAG_ONE_SHOT))
+        notificationBuilder.setContentIntent(PendingIntent.getActivity(context, context.hashCode(), intent, PendingIntent.FLAG_ONE_SHOT))
+        notificationBuilder.setAutoCancel(true)
 
         val notification = notificationBuilder.build()
 
@@ -48,9 +49,9 @@ fun notification(context: Context, title: String, message: String, isSecretMessa
         //TODO: add settings check if has notifications disabled
         if (isSecretMessage) {
             //TODO: Remove hard-coded string
-            CustomNotification.make(context, R.mipmap.ic_launcher, "New Message from " + title.split("enger - ".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()[1], message, Intent(context, MainActivity::class.java), false, true).show()
+            CustomNotification.make(context, R.mipmap.ic_launcher, title, message, Intent(context, MainActivity::class.java), false, true).show()
         } else {
-            CustomNotification.make(context, R.mipmap.ic_launcher, "New Message from " + title.split("enger - ".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()[1], message, Intent(context, MainActivity::class.java), false, true).show()
+            CustomNotification.make(context, R.mipmap.ic_launcher, title, message, Intent(context, MainActivity::class.java), false, true).show()
         }
     }
 }

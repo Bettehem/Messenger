@@ -21,11 +21,11 @@ import com.github.bettehem.messenger.objects.ChatRequestResponseInfo;
 import com.github.bettehem.messenger.tools.items.ChatItem;
 import com.github.bettehem.messenger.tools.items.MessageItem;
 import com.github.bettehem.messenger.tools.listeners.ChatItemListener;
+import com.github.bettehem.messenger.tools.ui.CustomNotificationKt;
 import com.github.bettehem.messenger.tools.users.Sender;
 import com.github.bettehem.messenger.tools.users.UserProfile;
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 
-import org.apache.commons.codec.android.binary.Base64;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
@@ -35,9 +35,6 @@ import org.json.JSONObject;
 
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Calendar;
 
@@ -152,6 +149,7 @@ public abstract class ChatsManager {
                     // TODO: 9/30/17 add support for secret messages
                     data.put("isSecretMessage", "false");
                     jsonObject.put("data", data);
+                    jsonObject.put("TTL", "0");
                     StringEntity se = new StringEntity(jsonObject.toString());
                     se.setContentType(new BasicHeader("Content-Type", "application/json; UTF-8"));
                     post.setEntity(se);
@@ -298,6 +296,7 @@ public abstract class ChatsManager {
                     data.put("key", Preferences.loadString(context, "localEncryptedUsername", username));
                     data.put("iv", iv);
                     jsonObject.put("data", data);
+                    jsonObject.put("TTL", "0");
                     HttpPost post = new HttpPost("https://gcm-http.googleapis.com/gcm/send");
 
                     StringEntity se = new StringEntity(jsonObject.toString());
@@ -381,7 +380,7 @@ public abstract class ChatsManager {
                 intent.putExtra("type", "chatRequest");
                 intent.putExtra("username", sender);
                 //TODO: Remove hard-coded strings
-                CustomNotification.make(context, R.mipmap.ic_launcher, "Messenger", "New chat request from " + sender, intent, true, true).show();
+                CustomNotificationKt.notification(context,"Messenger Chat Request", "New chat request from " + sender, false, intent);
             }
         }
     }
@@ -437,6 +436,7 @@ public abstract class ChatsManager {
 
 
                     jsonObject.put("data", data);
+                    jsonObject.put("TTL", "0");
                     StringEntity se = new StringEntity(jsonObject.toString());
                     se.setContentType(new BasicHeader("Content-Type", "application/json; UTF-8"));
                     post.setEntity(se);
@@ -483,6 +483,7 @@ public abstract class ChatsManager {
                     data.put("correctPassword", String.valueOf(correctPassword));
                     data.put("sender", Preferences.loadString(context, "name", ProfileManager.FILENAME));
                     jsonObject.put("data", data);
+                    jsonObject.put("TTL", "0");
                     StringEntity se = new StringEntity(jsonObject.toString());
                     se.setContentType(new BasicHeader("Content-Type", "application/json; UTF-8"));
                     post.setEntity(se);
