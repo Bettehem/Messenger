@@ -39,6 +39,7 @@ import com.github.bettehem.messenger.R
         notificationBuilder.setChannelId(channelId)
         notificationBuilder.setContentIntent(PendingIntent.getActivity(context, context.hashCode(), intent, PendingIntent.FLAG_ONE_SHOT))
         notificationBuilder.setAutoCancel(true)
+        notificationBuilder.setStyle(NotificationCompat.BigTextStyle().bigText(message))
 
         val notification = notificationBuilder.build()
 
