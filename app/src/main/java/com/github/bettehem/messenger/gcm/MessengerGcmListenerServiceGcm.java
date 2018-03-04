@@ -1,19 +1,25 @@
 package com.github.bettehem.messenger.gcm;
 
 import android.os.Handler;
+
+import com.github.bettehem.androidtools.misc.Time;
 import com.github.bettehem.messenger.tools.background.ReceivedMessage;
 import com.github.bettehem.messenger.tools.background.RequestResponse;
+import com.github.bettehem.messenger.tools.items.MessageItem;
 import com.github.bettehem.messenger.tools.listeners.GcmReceivedListener;
+import com.github.bettehem.messenger.tools.listeners.MessageItemListener;
 import com.github.bettehem.messenger.tools.managers.ChatsManager;
 import com.github.bettehem.messenger.tools.users.Sender;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
+import java.util.Calendar;
 import java.util.Map;
 
 import static com.github.bettehem.messenger.tools.ui.CustomNotificationKt.notification;
 
 public class MessengerGcmListenerServiceGcm extends FirebaseMessagingService implements GcmReceivedListener {
+    private static MessageItemListener messageItemListener;
 
     @Override
     public void onMessageReceived(RemoteMessage message){
@@ -71,10 +77,18 @@ public class MessengerGcmListenerServiceGcm extends FirebaseMessagingService imp
         return sender.contains(ChatsManager.SPLITTER) ? sender.replace(ChatsManager.SPLITTER, " ") : sender;
     }
 
-
+    public static void setMessageItemListener(MessageItemListener messageItemListener){
+        MessengerGcmListenerServiceGcm.messageItemListener = messageItemListener;
+    }
 
     @Override
     public void onMessageReceived(Sender senderData, String message) {
+        //show a notification
         notification(getApplicationContext(), "Messenger - " + senderData.userName, message, senderData.isSecretMessage);
+        //save message
+        ChatsManager.saveMessage(getApplicationContext(), senderData.userName, new MessageItem(message, new Time(Calendar.getInstance()), false));
+        if (messageItemListener != null){
+            messageItemListener.onMessageListUpdated();
+        }
     }
 }

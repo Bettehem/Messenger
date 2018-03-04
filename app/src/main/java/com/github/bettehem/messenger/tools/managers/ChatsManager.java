@@ -21,6 +21,7 @@ import com.github.bettehem.messenger.objects.ChatRequestResponseInfo;
 import com.github.bettehem.messenger.tools.items.ChatItem;
 import com.github.bettehem.messenger.tools.items.MessageItem;
 import com.github.bettehem.messenger.tools.listeners.ChatItemListener;
+import com.github.bettehem.messenger.tools.listeners.MessageItemListener;
 import com.github.bettehem.messenger.tools.ui.CustomNotificationKt;
 import com.github.bettehem.messenger.tools.users.Sender;
 import com.github.bettehem.messenger.tools.users.UserProfile;
@@ -122,7 +123,7 @@ public abstract class ChatsManager {
         return new Sender(userName, isSecretMessage);
     }
 
-    public static void sendMessage(final Context context, final String username, final String message){
+    public static void sendMessage(final Context context, final String username, final String message, MessageItemListener messageItemListener){
         final String receiver = EncryptionManager.createHash(Preferences.loadString(context, "encryptedUsername", username));
         Thread thread = new Thread() {
             public void run() {
@@ -162,6 +163,9 @@ public abstract class ChatsManager {
             }
         };
         thread.start();
+        //save the sent message
+        saveMessage(context, username, new MessageItem(message, new Time(Calendar.getInstance()), true));
+        messageItemListener.onMessageListUpdated();
     }
 
     public static String getMessage(Context context, Sender senderData, String rawMessage) {
@@ -173,11 +177,39 @@ public abstract class ChatsManager {
         return EncryptionManager.unscramble(decrypted);
     }
 
-    // TODO: 1/6/17 finish this method
-    public static ArrayList<MessageItem> getMessageItems(Context context) {
+    public static ArrayList<MessageItem> getMessageItems(Context context, String username) {
         ArrayList<MessageItem> items = new ArrayList<>();
+        int messageAmount = Preferences.loadInt(context, "messageAmount", username);
 
+        for (int i = 0; i < messageAmount; i++){
+            String[] rawMessage = Preferences.loadStringArray(context, "message_" + i, username);
+            String message = rawMessage[0];
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTimeInMillis(Long.valueOf(rawMessage[1]));
+            Time time = new Time(calendar);
+            boolean isOwnMessage = Boolean.valueOf(rawMessage[2]);
+            items.add(new MessageItem(message, time, isOwnMessage));
+        }
         return items;
+    }
+
+    public static void saveMessage(Context context, String username, MessageItem messageItem){
+        //get current items
+        ArrayList<MessageItem> items = getMessageItems(context, username);
+
+        //add new MessageItem to list
+        items.add(messageItem);
+
+        //save new MessageAmount
+        Preferences.saveInt(context, "messageAmount", items.size(), username);
+
+        //save items
+        for (int i = 0; i < items.size(); i++){
+            String message = items.get(i).mMessage;
+            String time = String.valueOf(items.get(i).mTime.getTimeInMillis());
+            String isOwnMessage = String.valueOf(items.get(i).mIsOwnMessage);
+            Preferences.saveStringArray(context, "message_" + i, new String[]{message, time, isOwnMessage}, username);
+        }
     }
 
     public static boolean usernameExists(Context context, String username) {
