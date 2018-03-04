@@ -19,9 +19,12 @@ import com.github.bettehem.messenger.MainActivity;
 import com.github.bettehem.messenger.R;
 import com.github.bettehem.messenger.gcm.MessengerGcmListenerServiceGcm;
 import com.github.bettehem.messenger.tools.adapters.ChatsScreenMessageAdapter;
+import com.github.bettehem.messenger.tools.items.MessageItem;
 import com.github.bettehem.messenger.tools.listeners.ChatItemListener;
 import com.github.bettehem.messenger.tools.listeners.MessageItemListener;
 import com.github.bettehem.messenger.tools.managers.ChatsManager;
+
+import java.util.ArrayList;
 
 public class ChatScreen extends Fragment implements View.OnClickListener, MessageItemListener {
 
@@ -171,7 +174,9 @@ public class ChatScreen extends Fragment implements View.OnClickListener, Messag
     @Override
     public void onMessageListUpdated() {
         if (Preferences.loadBoolean(getActivity(), "appVisible")){
-            messageAdapter.setMessageItems(ChatsManager.getMessageItems(getActivity(), username));
+            ArrayList<MessageItem> items = ChatsManager.getMessageItems(getActivity(), username);
+            messageAdapter.setMessageItems(items);
+            messageRecycler.scrollToPosition(items.size()-1);
         }
     }
 }
