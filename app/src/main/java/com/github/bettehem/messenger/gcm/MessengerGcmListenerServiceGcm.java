@@ -2,6 +2,7 @@ package com.github.bettehem.messenger.gcm;
 
 import android.os.Handler;
 
+import com.github.bettehem.androidtools.Preferences;
 import com.github.bettehem.androidtools.misc.Time;
 import com.github.bettehem.messenger.tools.background.ReceivedMessage;
 import com.github.bettehem.messenger.tools.background.RequestResponse;
@@ -87,7 +88,7 @@ public class MessengerGcmListenerServiceGcm extends FirebaseMessagingService imp
         notification(getApplicationContext(), "Messenger - " + senderData.userName, message, senderData.isSecretMessage);
         //save message
         ChatsManager.saveMessage(getApplicationContext(), senderData.userName, new MessageItem(message, new Time(Calendar.getInstance()), false));
-        if (messageItemListener != null){
+        if (messageItemListener != null && Preferences.loadBoolean(getApplicationContext(), "appVisible")){
             messageItemListener.onMessageListUpdated();
         }
     }

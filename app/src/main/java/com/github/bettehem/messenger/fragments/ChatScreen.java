@@ -177,11 +177,15 @@ public class ChatScreen extends Fragment implements View.OnClickListener, Messag
 
     @Override
     public void onMessageListUpdated() {
-        if (Preferences.loadBoolean(Objects.requireNonNull(getActivity()), "appVisible")){
-            ArrayList<MessageItem> items = ChatsManager.getMessageItems(getActivity(), username);
-            messageAdapter.setMessageItems(items);
-            messageRecycler.scrollToPosition(items.size() - 1);
-            ChatsManager.editChatItem(getActivity(), username, items.get(items.size() - 1).mMessage, items.get(items.size() - 1).mTime);
+        try {
+            if (Preferences.loadBoolean(getActivity(), "appVisible")){
+                ArrayList<MessageItem> items = ChatsManager.getMessageItems(getActivity(), username);
+                messageAdapter.setMessageItems(items);
+                messageRecycler.scrollToPosition(items.size() - 1);
+                ChatsManager.editChatItem(getActivity(), username, items.get(items.size() - 1).mMessage, items.get(items.size() - 1).mTime);
+            }
+        }catch (Exception e){
+
         }
     }
 }
