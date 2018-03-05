@@ -20,14 +20,14 @@ class TopicManager(context: Context, topicListener: TopicListener){
     //adds a topic to the list of topics
     fun addTopic(topicName : String){
         var topics = Preferences.loadStringArray(mContext, "topics", "FCMTopics")
-        topics += topicName
+        if (!topics.contains(topicName)){ topics += topicName }
         Preferences.saveStringArray(mContext, "topics", topics, "FCMTopics")
         listener.onTopicAdded(topicName)
     }
 
     //gets the list of topics
     fun getTopics() : ArrayList<String>{
-        var topics : ArrayList<String> = ArrayList()
+        val topics : ArrayList<String> = ArrayList()
         for (topic in Preferences.loadStringArray(mContext, "topics", "FCMTopics")){
             if (topic != "")
             topics.add(topic)
@@ -37,7 +37,7 @@ class TopicManager(context: Context, topicListener: TopicListener){
 
     //deletes a topic
     fun deleteTopic(topicName: String){
-        var topics = getTopics()
+        val topics = getTopics()
         topics.remove(topicName)
         saveTopics(topics)
         listener.onTopicDeleted(topicName)

@@ -27,6 +27,7 @@ import com.github.bettehem.messenger.tools.users.Sender;
 import com.github.bettehem.messenger.tools.users.UserProfile;
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 
+import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
@@ -53,7 +54,7 @@ public abstract class ChatsManager {
     public static ArrayList<ChatItem> getChatItems(Context context) {
 
         //Get current chat items
-        ArrayList<ChatItem> chatItems = new ArrayList<ChatItem>();
+        ArrayList<ChatItem> chatItems = new ArrayList<>();
         int chatAmount = Preferences.loadInt(context, "chatsAmount", "ChatDetails");
         for (int i = 0; i < chatAmount; i++) {
             String[] item = Preferences.loadStringArray(context, "chatItem_" + i, "ChatDetails");
@@ -137,7 +138,7 @@ public abstract class ChatsManager {
 
 
                 //send message
-                HttpPost post = new HttpPost("https://gcm-http.googleapis.com/gcm/send");
+                HttpPost post = new HttpPost("https://fcm.googleapis.com/fcm/send");
                 JSONObject jsonObject = new JSONObject();
                 try {
                     jsonObject.put("to", "/topics/" + receiver);
@@ -150,13 +151,15 @@ public abstract class ChatsManager {
                     // TODO: 9/30/17 add support for secret messages
                     data.put("isSecretMessage", "false");
                     jsonObject.put("data", data);
-                    jsonObject.put("TTL", "0");
+                    jsonObject.put("TTL", String.valueOf( ((60 * 60) * 24) * 7));
                     StringEntity se = new StringEntity(jsonObject.toString());
                     se.setContentType(new BasicHeader("Content-Type", "application/json; UTF-8"));
                     post.setEntity(se);
                     post.setHeader("Authorization", "key=" + "AIzaSyD8C9exPq2SWMkJUcGc8ZNT8MA9b18rF4I");
                     HttpClient client = new DefaultHttpClient();
-                    client.execute(post);
+                    HttpResponse response = client.execute(post);
+                    Looper.prepare();
+                    Snackbar.make(MainActivity.mainRelativeLayout, "Status: " + response.getStatusLine().getReasonPhrase(), Snackbar.LENGTH_SHORT).show();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -328,15 +331,17 @@ public abstract class ChatsManager {
                     data.put("key", Preferences.loadString(context, "localEncryptedUsername", username));
                     data.put("iv", iv);
                     jsonObject.put("data", data);
-                    jsonObject.put("TTL", "0");
-                    HttpPost post = new HttpPost("https://gcm-http.googleapis.com/gcm/send");
+                    jsonObject.put("TTL", "10");
+                    HttpPost post = new HttpPost("https://fcm.googleapis.com/fcm/send");
 
                     StringEntity se = new StringEntity(jsonObject.toString());
                     se.setContentType(new BasicHeader("Content-Type", "application/json; UTF-8"));
                     post.setEntity(se);
                     post.setHeader("Authorization", "key= " + "AIzaSyD8C9exPq2SWMkJUcGc8ZNT8MA9b18rF4I");
                     HttpClient client = new DefaultHttpClient();
-                    client.execute(post);
+                    HttpResponse response = client.execute(post);
+                    Looper.prepare();
+                    Snackbar.make(MainActivity.mainRelativeLayout, "Status: " + response.getStatusLine().getReasonPhrase(), Snackbar.LENGTH_SHORT).show();
 
 
 
@@ -358,7 +363,7 @@ public abstract class ChatsManager {
                     data.put("iv", iv);
                     jsonObject.put("data", data);
                     //address for connection
-                    URL url = new URL("https://gcm-http.googleapis.com/gcm/send");
+                    URL url = new URL("https://fcm.googleapis.com/fcm/send");
                     //open connection
                     HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
                     urlConnection.setRequestMethod("POST");
@@ -455,7 +460,7 @@ public abstract class ChatsManager {
         final ArrayList<String> finalEncryptedUsername = encryptedUsername;
         Thread thread = new Thread() {
             public void run() {
-                HttpPost post = new HttpPost("https://gcm-http.googleapis.com/gcm/send");
+                HttpPost post = new HttpPost("https://fcm.googleapis.com/fcm/send");
                 JSONObject jsonObject = new JSONObject();
                 try {
                     jsonObject.put("to", "/topics/" + receiver);
@@ -470,20 +475,23 @@ public abstract class ChatsManager {
 
 
                     jsonObject.put("data", data);
-                    jsonObject.put("TTL", "0");
+                    jsonObject.put("TTL", "15");
                     StringEntity se = new StringEntity(jsonObject.toString());
                     se.setContentType(new BasicHeader("Content-Type", "application/json; UTF-8"));
                     post.setEntity(se);
                     post.setHeader("Authorization", "key=" + "AIzaSyD8C9exPq2SWMkJUcGc8ZNT8MA9b18rF4I");
                     HttpClient client = new DefaultHttpClient();
-                    client.execute(post);
+                    HttpResponse response = client.execute(post);
+                    Looper.prepare();
+                    //Toast.makeText(context, response.getStatusLine().getReasonPhrase(), Toast.LENGTH_LONG).show();
+                    Snackbar.make(MainActivity.mainRelativeLayout, "Request status: " + response.getStatusLine().getReasonPhrase(), Snackbar.LENGTH_SHORT).show();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
         };
         thread.start();
-        Snackbar.make(MainActivity.mainRelativeLayout, "Response Sent!, Please wait...", Snackbar.LENGTH_LONG).show();
+        //Snackbar.make(MainActivity.mainRelativeLayout, "Response Sent!, Please wait...", Snackbar.LENGTH_SHORT).show();
     }
 
     public static ChatRequestResponseInfo handleChatRequestResponse(Context context, boolean requestAccepted, String username, String password) {
@@ -508,7 +516,7 @@ public abstract class ChatsManager {
         final String receiver = EncryptionManager.createHash(Preferences.loadString(context, "encryptedUsername", username));
         Thread thread = new Thread() {
             public void run() {
-                HttpPost post = new HttpPost("https://gcm-http.googleapis.com/gcm/send");
+                HttpPost post = new HttpPost("https://fcm.googleapis.com/fcm/send");
                 JSONObject jsonObject = new JSONObject();
                 try {
                     jsonObject.put("to", "/topics/" + receiver);
@@ -517,13 +525,15 @@ public abstract class ChatsManager {
                     data.put("correctPassword", String.valueOf(correctPassword));
                     data.put("sender", Preferences.loadString(context, "name", ProfileManager.FILENAME));
                     jsonObject.put("data", data);
-                    jsonObject.put("TTL", "0");
+                    jsonObject.put("TTL", String.valueOf(60*5));
                     StringEntity se = new StringEntity(jsonObject.toString());
                     se.setContentType(new BasicHeader("Content-Type", "application/json; UTF-8"));
                     post.setEntity(se);
                     post.setHeader("Authorization", "key=" + "AIzaSyD8C9exPq2SWMkJUcGc8ZNT8MA9b18rF4I");
                     HttpClient client = new DefaultHttpClient();
-                    client.execute(post);
+                    HttpResponse response = client.execute(post);
+                    Looper.prepare();
+                    Snackbar.make(MainActivity.mainRelativeLayout, "Status: " + response.getStatusLine().getReasonPhrase(), Snackbar.LENGTH_SHORT).show();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -562,7 +572,7 @@ public abstract class ChatsManager {
 
     public static void editChatItem(Context context, String username, String newMessage, Time newTime) {
         //Get current chat items
-        ArrayList<ChatItem> chatItems = new ArrayList<ChatItem>();
+        ArrayList<ChatItem> chatItems = new ArrayList<>();
         int chatAmount = Preferences.loadInt(context, "chatsAmount", "ChatDetails");
         for (int i = 0; i < chatAmount; i++) {
             String[] item = Preferences.loadStringArray(context, "chatItem_" + i, "ChatDetails");
@@ -618,7 +628,7 @@ public abstract class ChatsManager {
     private static void saveChatItem(Context context, String username, String message, Time time) {
 
         //Get current chat items
-        ArrayList<ChatItem> chatItems = new ArrayList<ChatItem>();
+        ArrayList<ChatItem> chatItems = new ArrayList<>();
         int chatAmount = Preferences.loadInt(context, "chatsAmount", "ChatDetails");
         for (int i = 0; i < chatAmount; i++) {
             String[] item = Preferences.loadStringArray(context, "chatItem_" + i, "ChatDetails");

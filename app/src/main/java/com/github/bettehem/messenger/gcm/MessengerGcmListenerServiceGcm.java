@@ -32,6 +32,8 @@ public class MessengerGcmListenerServiceGcm extends FirebaseMessagingService imp
 
         if (type != null){
 
+            //TODO: Check if a chat has been started with the sender already and if so,
+            // ignore message types: chatrequest, requestresponse, startChat
             switch (type.toLowerCase()){
 
                 case "notification":
@@ -45,7 +47,7 @@ public class MessengerGcmListenerServiceGcm extends FirebaseMessagingService imp
                     break;
 
                 case "message":
-                    ReceivedMessage receivedMessage = new ReceivedMessage(getApplicationContext(), true, (String) data.get("sender") + ChatsManager.SPLITTER + data.get("isSecretMessage"), (String) data.get("message"));
+                    ReceivedMessage receivedMessage = new ReceivedMessage(getApplicationContext(), true, data.get("sender") + ChatsManager.SPLITTER + data.get("isSecretMessage"), (String) data.get("message"));
                     receivedMessage.setMessageListener(this);
                     receivedMessage.getMessage();
                     break;
