@@ -61,6 +61,7 @@ public class MessengerGcmListenerServiceGcm extends FirebaseMessagingService imp
                     break;
 
                 case "startchat":
+                    //TODO: change to use hash of encrypted username for "sender" parameter
                     final String chatStartSender = getSender((String) data.get("sender"));
                     boolean correctPassword = Boolean.valueOf((String) data.get("correctPassword"));
                     if (correctPassword){
