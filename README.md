@@ -1,5 +1,6 @@
 # Messenger
 An android messenger that only needs a username. Also, there's encryption.
+Available on Google Play store for download: https://play.google.com/store/apps/details?id=com.github.bettehem.messenger
 
 The way this messenger app is different from others that i have found, is that no information is collected on users.
 For example WhatsApp collects your phone number and contacts among other things.
