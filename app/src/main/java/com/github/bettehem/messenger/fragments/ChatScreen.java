@@ -167,9 +167,7 @@ public class ChatScreen extends Fragment implements View.OnClickListener, Messag
     public void onClick(View v) {
         switch (v.getId()){
             case R.id.acceptChatRequestButton:
-                if (!passwordEditText.getText().toString().contentEquals("")){
-                    ChatsManager.responseToRequest(getActivity(), true, username, passwordEditText.getText().toString(), chatItemListener);
-                }else {
+                if (passwordEditText.getText().toString().contentEquals("")){
                     CustomAlertDialog.make(getActivity(), "Warning!", "You can't use an empty password", false, "Ok", new DialogButtonsListener() {
                         @Override
                         public void onPositiveButtonClicked(String id) {
@@ -186,6 +184,8 @@ public class ChatScreen extends Fragment implements View.OnClickListener, Messag
 
                         }
                     }, "requestResponseEmptyPasswordDialog").show();
+                }else {
+                    ChatsManager.responseToRequest(getActivity(), true, username, passwordEditText.getText().toString(), chatItemListener);
                 }
                 break;
 

@@ -4,8 +4,8 @@ apply plugin: 'kotlin-android'
 android {
     compileSdkVersion 27
     buildToolsVersion '27.0.3'
-    int appVersionCode = 2
-    String appVersionName = "0.02"
+    int appVersionCode = 3
+    String appVersionName = "0.03"
 
 
 
@@ -55,19 +55,19 @@ android {
             dimension "mode"
             applicationId 'com.github.bettehem.messenger'
             versionCode appVersionCode
-            versionNameSuffix appVersionName + "-alpha"
+            versionNameSuffix "-alpha"
         }
         beta {
             dimension "mode"
             applicationId 'com.github.bettehem.messenger'
             versionCode appVersionCode
-            versionNameSuffix appVersionName + "-beta"
+            versionNameSuffix "-beta"
         }
         prod {
             dimension "mode"
             applicationId 'com.github.bettehem.messenger'
             versionCode appVersionCode
-            versionNameSuffix appVersionName
+            versionName appVersionName
         }
 
         minApi14 {

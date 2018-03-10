@@ -25,5 +25,12 @@
 -keep class com.google.android.gms.** { *; }
 -keep class com.github.bettehem.** { *; }
 -keep class org.jetbrains.kotlin.** { *; }
+-keep class org.apache.http.** { *; }
+-keep class org.json.** { *; }
+-keep class com.rockerhieu.emojicon.** { *; }
+-keep class com.google.api.client.** { *; }
+-keep class org.apache.legacy.** { *; }
+-keep class de.hdodenhof.** { *; }
+-keep class com.google.gms.** { *; }
 -dontwarn **.**
 
