@@ -17,14 +17,16 @@ public class ReceivedMessage {
     private String rawMessage;
     private Sender senderData;
     private String message;
+    private String messageId;
 
-    public ReceivedMessage (Context context, boolean showDialog, String senderDataString, String rawMessage){
+    public ReceivedMessage (Context context, boolean showDialog, String senderDataString, String rawMessage, String messageId){
         this.context = context;
         //if (showDialog){
         //    dialog(context);
         //}
         this.senderDataString = senderDataString;
         this.rawMessage = rawMessage;
+        this.messageId = messageId;
     }
 
     private void dialog(Context context){
@@ -66,7 +68,7 @@ public class ReceivedMessage {
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
             if (messageListener != null){
-                messageListener.onMessageReceived(senderData, message);
+                messageListener.onMessageReceived(senderData, message, messageId);
             }
         }
     }

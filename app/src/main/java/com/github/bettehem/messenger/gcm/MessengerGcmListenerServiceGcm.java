@@ -10,6 +10,7 @@ import com.github.bettehem.messenger.tools.items.MessageItem;
 import com.github.bettehem.messenger.tools.listeners.GcmReceivedListener;
 import com.github.bettehem.messenger.tools.listeners.MessageItemListener;
 import com.github.bettehem.messenger.tools.managers.ChatsManager;
+import com.github.bettehem.messenger.tools.managers.EncryptionManager;
 import com.github.bettehem.messenger.tools.users.Sender;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
@@ -47,7 +48,7 @@ public class MessengerGcmListenerServiceGcm extends FirebaseMessagingService imp
                     break;
 
                 case "message":
-                    ReceivedMessage receivedMessage = new ReceivedMessage(getApplicationContext(), true, data.get("sender") + ChatsManager.SPLITTER + data.get("isSecretMessage"), (String) data.get("message"));
+                    ReceivedMessage receivedMessage = new ReceivedMessage(getApplicationContext(), true, data.get("sender") + ChatsManager.SPLITTER + data.get("isSecretMessage"), (String) data.get("message"), (String) data.get("messageId"));
                     receivedMessage.setMessageListener(this);
                     receivedMessage.getMessage();
                     break;
@@ -62,14 +63,29 @@ public class MessengerGcmListenerServiceGcm extends FirebaseMessagingService imp
 
                 case "startchat":
                     //TODO: change to use hash of encrypted username for "sender" parameter
-                    final String chatStartSender = getSender((String) data.get("sender"));
-                    boolean correctPassword = Boolean.valueOf((String) data.get("correctPassword"));
-                    if (correctPassword){
-                        myRunnable = () -> ChatsManager.startNormalChat(getApplication(), chatStartSender, null);
-                        mainHandler.post(myRunnable);
+                    String sender = getSender((String) data.get("sender"));
 
-                    }else {
-                        //TODO: Tell user that their password was incorrect
+                    //check if right sender
+                    if (EncryptionManager.createHash(Preferences.loadString(getApplicationContext(), "iv", sender)).contentEquals((String) data.get("iv"))){
+                        final String chatStartSender = "";
+                        boolean correctPassword = Boolean.valueOf((String) data.get("correctPassword"));
+                        if (correctPassword){
+                            myRunnable = () -> ChatsManager.startNormalChat(getApplication(), chatStartSender, null);
+                            mainHandler.post(myRunnable);
+
+                        }else {
+                            //TODO: Tell user that their password was incorrect
+                        }
+                    }
+                    break;
+
+                case "deliveryReport":
+                    String reportSender = getSender((String) data.get("sender"));
+                    String messageId = (String) data.get("messageId");
+                    //save report
+                    MessageItem item = ChatsManager.saveDeliveryReport(getApplicationContext(), reportSender, messageId);
+                    if (messageItemListener != null && Preferences.loadBoolean(getApplicationContext(), "appVisible")){
+                        messageItemListener.onMessageItemUpdated(item);
                     }
                     break;
 
@@ -86,13 +102,16 @@ public class MessengerGcmListenerServiceGcm extends FirebaseMessagingService imp
     }
 
     @Override
-    public void onMessageReceived(Sender senderData, String message) {
+    public void onMessageReceived(Sender senderData, String message, String messageId) {
         //show a notification
         notification(getApplicationContext(), "Messenger - " + senderData.userName, message, senderData.isSecretMessage);
         //save message
-        ChatsManager.saveMessage(getApplicationContext(), senderData.userName, new MessageItem(message, new Time(Calendar.getInstance()), false));
+        ChatsManager.saveMessage(getApplicationContext(), senderData.userName, new MessageItem(message, messageId, new Time(Calendar.getInstance()), false));
         if (messageItemListener != null && Preferences.loadBoolean(getApplicationContext(), "appVisible")){
             messageItemListener.onMessageListUpdated();
         }
+
+        //send delivery report
+        ChatsManager.sendDeliveryReport(getApplicationContext(), EncryptionManager.createHash(Preferences.loadString(getApplicationContext(), "encryptedUsername", senderData.userName)), messageId);
     }
 }

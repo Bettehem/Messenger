@@ -21,6 +21,7 @@ import com.github.bettehem.messenger.objects.ChatRequestResponseInfo;
 import com.github.bettehem.messenger.tools.items.ChatItem;
 import com.github.bettehem.messenger.tools.items.MessageItem;
 import com.github.bettehem.messenger.tools.listeners.ChatItemListener;
+import com.github.bettehem.messenger.tools.listeners.HttpPostListener;
 import com.github.bettehem.messenger.tools.listeners.MessageItemListener;
 import com.github.bettehem.messenger.tools.ui.CustomNotificationKt;
 import com.github.bettehem.messenger.tools.users.Sender;
@@ -33,6 +34,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicHeader;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.FileInputStream;
@@ -40,6 +42,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
 
+// TODO: 3/9/18 Add more comments, so it's easier to understand what's happening
 public abstract class ChatsManager {
     public static final String SPLITTER = "_kjhas3ng7vb3b3a-XYZYX-di8x888xgwbkwv0vaw3pxds22_";
 
@@ -124,50 +127,63 @@ public abstract class ChatsManager {
         return new Sender(userName, isSecretMessage);
     }
 
-    public static void sendMessage(final Context context, final String username, final String message, MessageItemListener messageItemListener){
-        final String receiver = EncryptionManager.createHash(Preferences.loadString(context, "encryptedUsername", username));
-        Thread thread = new Thread() {
+    public static void sendHttpPost(JSONObject data, HttpPostListener listener){
+        Thread thread = new Thread(){
+            @Override
             public void run() {
-
-                //encrypt message
-                String key = EncryptionManager.createHash(Preferences.loadString(context, "localEncryptedUsername", username));
-                String iv = Preferences.loadString(context, "iv", username);
-                String scrambledMessage = EncryptionManager.scramble(message);
-
-                ArrayList<String> encryptedData = EncryptionManager.encrypt(iv, key, scrambledMessage);
-
-
-                //send message
-                HttpPost post = new HttpPost("https://fcm.googleapis.com/fcm/send");
-                JSONObject jsonObject = new JSONObject();
                 try {
-                    jsonObject.put("to", "/topics/" + receiver);
-                    JSONObject data = new JSONObject();
-                    data.put("type", "message");
-                    data.put("sender", Preferences.loadString(context, "name", ProfileManager.FILENAME));
-                    //data.put("iv", encryptedData.get(0));
-                    //data.put("message", Base64.encodeToString(encryptedData.get(1).getBytes("UTF-8"), EncryptionManager.BASE64_FLAGS));
-                    data.put("message", encryptedData.get(1));
-                    // TODO: 9/30/17 add support for secret messages
-                    data.put("isSecretMessage", "false");
-                    jsonObject.put("data", data);
-                    jsonObject.put("TTL", String.valueOf( ((60 * 60) * 24) * 7));
-                    StringEntity se = new StringEntity(jsonObject.toString());
+                    HttpPost post = new HttpPost("https://fcm.googleapis.com/fcm/send");
+                    StringEntity se = new StringEntity(data.toString());
                     se.setContentType(new BasicHeader("Content-Type", "application/json; UTF-8"));
                     post.setEntity(se);
                     post.setHeader("Authorization", "key=" + "AIzaSyD8C9exPq2SWMkJUcGc8ZNT8MA9b18rF4I");
                     HttpClient client = new DefaultHttpClient();
                     HttpResponse response = client.execute(post);
-                    Looper.prepare();
-                    Snackbar.make(MainActivity.mainRelativeLayout, "Status: " + response.getStatusLine().getReasonPhrase(), Snackbar.LENGTH_SHORT).show();
-                } catch (Exception e) {
+                    listener.onPostResponse(response);
+                }catch (Exception e){
                     e.printStackTrace();
                 }
             }
         };
         thread.start();
+    }
+
+    public static void sendMessage(final Context context, final String username, final String message, MessageItemListener messageItemListener){
+        //set receiver
+        String receiver = EncryptionManager.createHash(Preferences.loadString(context, "encryptedUsername", username));
+
+        //encrypt message
+        String key = EncryptionManager.createHash(Preferences.loadString(context, "localEncryptedUsername", username));
+        String iv = Preferences.loadString(context, "iv", username);
+        String scrambledMessage = EncryptionManager.scramble(message);
+        //index 0 is the iv, index 1 is the encrypted data
+        ArrayList<String> encryptedData = EncryptionManager.encrypt(iv, key, scrambledMessage);
+
+        String messageId = EncryptionManager.createHash(String.valueOf(Calendar.getInstance().getTimeInMillis()));
+
+        JSONObject jsonObject = new JSONObject();
+        JSONObject data = new JSONObject();
+        try {
+            jsonObject.put("to", "/topics/" + receiver);
+            data.put("type", "message");
+            data.put("sender", Preferences.loadString(context, "name", ProfileManager.FILENAME));
+            data.put("message", encryptedData.get(1));
+            data.put("messageId", messageId);
+            // TODO: 9/30/17 add support for secret messages
+            data.put("isSecretMessage", "false");
+            jsonObject.put("data", data);
+            jsonObject.put("TTL", String.valueOf(60 * 60));
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        sendHttpPost(jsonObject, response -> {
+            Snackbar.make(MainActivity.mainRelativeLayout, "Status: " + response.getStatusLine().getReasonPhrase(), Snackbar.LENGTH_SHORT).show();
+        });
+
+
         //save the sent message
-        saveMessage(context, username, new MessageItem(message, new Time(Calendar.getInstance()), true));
+        saveMessage(context, username, new MessageItem(message, messageId, new Time(Calendar.getInstance()), true));
         messageItemListener.onMessageListUpdated();
     }
 
@@ -191,7 +207,15 @@ public abstract class ChatsManager {
             calendar.setTimeInMillis(Long.valueOf(rawMessage[1]));
             Time time = new Time(calendar);
             boolean isOwnMessage = Boolean.valueOf(rawMessage[2]);
-            items.add(new MessageItem(message, time, isOwnMessage));
+            String messageId = String.valueOf(Calendar.getInstance().getTimeInMillis());
+            if (rawMessage.length >= 4){
+                messageId = rawMessage[3];
+            }
+            boolean messageDelivered = false;
+            if (rawMessage.length >= 5){
+                messageDelivered = Boolean.valueOf(rawMessage[4]);
+            }
+            items.add(new MessageItem(message, messageId, time, isOwnMessage, messageDelivered));
         }
         return items;
     }
@@ -201,7 +225,23 @@ public abstract class ChatsManager {
         ArrayList<MessageItem> items = getMessageItems(context, username);
 
         //add new MessageItem to list
-        items.add(messageItem);
+        //if the item already exists, modify it instead
+        boolean itemExists = false;
+        for (int i = 0; i < items.size(); i++){
+            if (items.get(i).mMessageId.contentEquals(messageItem.mMessageId)){
+                MessageItem item = items.get(i);
+                item.mMessageId = messageItem.mMessageId;
+                item.mMessage = messageItem.mMessage;
+                item.mMessageDelivered = messageItem.mMessageDelivered;
+                item.mIsOwnMessage = messageItem.mIsOwnMessage;
+                item.mTime = messageItem.mTime;
+                items.set(i, item);
+                itemExists = true;
+            }
+        }
+        if (!itemExists){
+            items.add(messageItem);
+        }
 
         //save new MessageAmount
         Preferences.saveInt(context, "messageAmount", items.size(), username);
@@ -209,9 +249,11 @@ public abstract class ChatsManager {
         //save items
         for (int i = 0; i < items.size(); i++){
             String message = items.get(i).mMessage;
+            String messageId = items.get(i).mMessageId;
             String time = String.valueOf(items.get(i).mTime.getTimeInMillis());
             String isOwnMessage = String.valueOf(items.get(i).mIsOwnMessage);
-            Preferences.saveStringArray(context, "message_" + i, new String[]{message, time, isOwnMessage}, username);
+            String messageDelivered = String.valueOf(items.get(i).mMessageDelivered);
+            Preferences.saveStringArray(context, "message_" + i, new String[]{message, time, isOwnMessage, messageId, messageDelivered}, username);
         }
     }
 
@@ -303,85 +345,23 @@ public abstract class ChatsManager {
      * @param username The chat request is sent to the given username.
      */
     private static void sendRequest(final Context context, final String iv, final String username) {
-        final String receiver = username.replace(" ", SPLITTER);
-        Thread thread = new Thread() {
-            public void run() {
-                try {
+        String receiver = username.replace(" ", SPLITTER);
+        JSONObject jsonObject = new JSONObject();
+        try {
+            jsonObject.put("to", "/topics/" + receiver);
+            JSONObject data = new JSONObject();
+            data.put("type", "chatRequest");
+            data.put("sender", Preferences.loadString(context, "name", ProfileManager.FILENAME));
+            data.put("key", Preferences.loadString(context, "localEncryptedUsername", username));
+            data.put("iv", iv);
+            jsonObject.put("data", data);
+        }catch (JSONException e){
+            e.printStackTrace();
+        }
 
-                    //prepare data for sending
-                    /*
-                    JSONObject jsonObject = new JSONObject();
-                    JSONObject message = new JSONObject();
-                    message.put("topic", receiver);
-                    JSONObject data = new JSONObject();
-                    data.put("type", "chatRequest");
-                    data.put("sender", Preferences.loadString(context, "name", ProfileManager.FILENAME));
-                    data.put("key", Preferences.loadString(context, "localEncryptedUsername", username));
-                    data.put("iv", iv);
-                    message.put("data", data);
-                    jsonObject.put("message", message);
-                    */
-
-
-                    JSONObject jsonObject = new JSONObject();
-                    jsonObject.put("to", "/topics/" + receiver);
-                    JSONObject data = new JSONObject();
-                    data.put("type", "chatRequest");
-                    data.put("sender", Preferences.loadString(context, "name", ProfileManager.FILENAME));
-                    data.put("key", Preferences.loadString(context, "localEncryptedUsername", username));
-                    data.put("iv", iv);
-                    jsonObject.put("data", data);
-                    jsonObject.put("TTL", "10");
-                    HttpPost post = new HttpPost("https://fcm.googleapis.com/fcm/send");
-
-                    StringEntity se = new StringEntity(jsonObject.toString());
-                    se.setContentType(new BasicHeader("Content-Type", "application/json; UTF-8"));
-                    post.setEntity(se);
-                    post.setHeader("Authorization", "key= " + "AIzaSyD8C9exPq2SWMkJUcGc8ZNT8MA9b18rF4I");
-                    HttpClient client = new DefaultHttpClient();
-                    HttpResponse response = client.execute(post);
-                    Looper.prepare();
-                    Snackbar.make(MainActivity.mainRelativeLayout, "Status: " + response.getStatusLine().getReasonPhrase(), Snackbar.LENGTH_SHORT).show();
-
-
-
-
-
-
-
-
-
-
-
-                    /*
-                    JSONObject jsonObject = new JSONObject();
-                    jsonObject.put("to", "/topics/" + receiver);
-                    JSONObject data = new JSONObject();
-                    data.put("type", "chatRequest");
-                    data.put("sender", Preferences.loadString(context, "name", ProfileManager.FILENAME));
-                    data.put("key", Preferences.loadString(context, "localEncryptedUsername", username));
-                    data.put("iv", iv);
-                    jsonObject.put("data", data);
-                    //address for connection
-                    URL url = new URL("https://fcm.googleapis.com/fcm/send");
-                    //open connection
-                    HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-                    urlConnection.setRequestMethod("POST");
-                    urlConnection.setRequestProperty("Content-Type", "application/json; UTF-8");
-                    urlConnection.setRequestProperty("Authorization", "key=" + "AIzaSyD8C9exPq2SWMkJUcGc8ZNT8MA9b18rF4I");
-
-                    OutputStreamWriter outputStreamWriter = new OutputStreamWriter(urlConnection.getOutputStream(), "UTF-8");
-                    outputStreamWriter.write(jsonObject.toString());
-                    outputStreamWriter.flush();
-                    outputStreamWriter.close();
-                    urlConnection.disconnect();
-                    */
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        };
-        thread.start();
+        sendHttpPost(jsonObject, response -> {
+            Snackbar.make(MainActivity.mainRelativeLayout, "Status: " + response.getStatusLine().getReasonPhrase(), Snackbar.LENGTH_SHORT).show();
+        });
     }
 
 
@@ -454,44 +434,27 @@ public abstract class ChatsManager {
             listener.onRequestAccepted(username, key);
         }
 
+
         //Send response to the chat request
-        final String receiver = username;
-        final String finalReadyUsername = encryptedUsername.get(1);
-        final ArrayList<String> finalEncryptedUsername = encryptedUsername;
-        Thread thread = new Thread() {
-            public void run() {
-                HttpPost post = new HttpPost("https://fcm.googleapis.com/fcm/send");
-                JSONObject jsonObject = new JSONObject();
-                try {
-                    jsonObject.put("to", "/topics/" + receiver);
-                    JSONObject data = new JSONObject();
+        String receiver = username;
+        String readyUsername = encryptedUsername.get(1);
+        JSONObject jsonObject = new JSONObject();
+        try{
+            jsonObject.put("to", "/topics/" + receiver);
 
-
-                    data.put("type", "requestResponse");
-                    data.put("sender", Preferences.loadString(context, "name", ProfileManager.FILENAME));
-                    data.put("requestAccepted", String.valueOf(acceptRequest));
-                    //data.put("iv", finalEncryptedUsername.get(0));
-                    data.put("password", finalReadyUsername);
-
-
-                    jsonObject.put("data", data);
-                    jsonObject.put("TTL", "15");
-                    StringEntity se = new StringEntity(jsonObject.toString());
-                    se.setContentType(new BasicHeader("Content-Type", "application/json; UTF-8"));
-                    post.setEntity(se);
-                    post.setHeader("Authorization", "key=" + "AIzaSyD8C9exPq2SWMkJUcGc8ZNT8MA9b18rF4I");
-                    HttpClient client = new DefaultHttpClient();
-                    HttpResponse response = client.execute(post);
-                    Looper.prepare();
-                    //Toast.makeText(context, response.getStatusLine().getReasonPhrase(), Toast.LENGTH_LONG).show();
-                    Snackbar.make(MainActivity.mainRelativeLayout, "Request status: " + response.getStatusLine().getReasonPhrase(), Snackbar.LENGTH_SHORT).show();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        };
-        thread.start();
-        //Snackbar.make(MainActivity.mainRelativeLayout, "Response Sent!, Please wait...", Snackbar.LENGTH_SHORT).show();
+            JSONObject data = new JSONObject();
+            data.put("type", "requestResponse");
+            data.put("sender", Preferences.loadString(context, "name", ProfileManager.FILENAME));
+            data.put("requestAccepted", String.valueOf(acceptRequest));
+            data.put("password", readyUsername);
+            jsonObject.put("data", data);
+            jsonObject.put("TTL", "15");
+        }catch (JSONException e){
+            e.printStackTrace();
+        }
+        sendHttpPost(jsonObject, response -> {
+            Snackbar.make(MainActivity.mainRelativeLayout, "Request status: " + response.getStatusLine().getReasonPhrase(), Snackbar.LENGTH_SHORT).show();
+        });
     }
 
     public static ChatRequestResponseInfo handleChatRequestResponse(Context context, boolean requestAccepted, String username, String password) {
@@ -513,33 +476,25 @@ public abstract class ChatsManager {
     public static void startChat(final Context context, final boolean correctPassword, final String username, int fragmentId, FragmentManager fragmentManager, ChatItemListener listener) {
 
         //Send info to other user on starting the chat
-        final String receiver = EncryptionManager.createHash(Preferences.loadString(context, "encryptedUsername", username));
-        Thread thread = new Thread() {
-            public void run() {
-                HttpPost post = new HttpPost("https://fcm.googleapis.com/fcm/send");
-                JSONObject jsonObject = new JSONObject();
-                try {
-                    jsonObject.put("to", "/topics/" + receiver);
-                    JSONObject data = new JSONObject();
-                    data.put("type", "startChat");
-                    data.put("correctPassword", String.valueOf(correctPassword));
-                    data.put("sender", Preferences.loadString(context, "name", ProfileManager.FILENAME));
-                    jsonObject.put("data", data);
-                    jsonObject.put("TTL", String.valueOf(60*5));
-                    StringEntity se = new StringEntity(jsonObject.toString());
-                    se.setContentType(new BasicHeader("Content-Type", "application/json; UTF-8"));
-                    post.setEntity(se);
-                    post.setHeader("Authorization", "key=" + "AIzaSyD8C9exPq2SWMkJUcGc8ZNT8MA9b18rF4I");
-                    HttpClient client = new DefaultHttpClient();
-                    HttpResponse response = client.execute(post);
-                    Looper.prepare();
-                    Snackbar.make(MainActivity.mainRelativeLayout, "Status: " + response.getStatusLine().getReasonPhrase(), Snackbar.LENGTH_SHORT).show();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        };
-        thread.start();
+        String receiver = EncryptionManager.createHash(Preferences.loadString(context, "encryptedUsername", username));
+        String ivHash = EncryptionManager.createHash(Preferences.loadString(context, "iv", username));
+        JSONObject jsonObject = new JSONObject();
+        try{
+            jsonObject.put("to", "/topics/" + receiver);
+            JSONObject data = new JSONObject();
+            data.put("type", "startChat");
+            data.put("correctPassword", String.valueOf(correctPassword));
+            data.put("hash", ivHash);
+            data.put("sender", Preferences.loadString(context, "name", ProfileManager.FILENAME));
+            jsonObject.put("data", data);
+            jsonObject.put("TTL", String.valueOf(60*5));
+        }catch (JSONException e){
+            e.printStackTrace();
+        }
+
+        sendHttpPost(jsonObject, response -> {
+            Snackbar.make(MainActivity.mainRelativeLayout, "Status: " + response.getStatusLine().getReasonPhrase(), Snackbar.LENGTH_SHORT).show();
+        });
 
         if (correctPassword) {
             //Edit current chatItem
@@ -600,6 +555,41 @@ public abstract class ChatsManager {
         MainActivity.chatItemListener.onChatItemListUpdated(getChatItems(context));
     }
 
+
+    public static void sendDeliveryReport(Context context, String username, String messageId){
+        String receiver = EncryptionManager.createHash(Preferences.loadString(context, "encryptedUsername", username));
+        JSONObject jsonObject = new JSONObject();
+        try{
+            jsonObject.put("to", "/topics/" + receiver);
+            JSONObject data = new JSONObject();
+            data.put("type", "deliveryReport");
+            data.put("sender", Preferences.loadString(context, "name", ProfileManager.FILENAME));
+            data.put("messageId", messageId);
+            jsonObject.put("data", data);
+            jsonObject.put("TTL", String.valueOf(30));
+        }catch (JSONException e){
+            e.printStackTrace();
+        }
+
+        sendHttpPost(jsonObject, response -> {
+            Snackbar.make(MainActivity.mainRelativeLayout, "Status: " + response.getStatusLine().getReasonPhrase(), Snackbar.LENGTH_SHORT).show();
+        });
+    }
+
+    public static MessageItem saveDeliveryReport(Context context, String username, String messageId){
+        ArrayList<MessageItem> messageItems = getMessageItems(context, username);
+
+        MessageItem deliveredItem = new MessageItem("null", messageId, new Time(Calendar.getInstance()), true);
+
+        for (MessageItem item : messageItems){
+            if (item.mMessageId.contentEquals(messageId)){
+                item.setMessageDelivered(true);
+                saveMessage(context, username, item);
+                deliveredItem = item;
+            }
+        }
+        return deliveredItem;
+    }
 
     //Private methods
     //----------------------------------------------------------------------------------------------

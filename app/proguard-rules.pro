@@ -15,3 +15,15 @@
 #-keepclassmembers class fqcn.of.javascript.interface.for.webview {
 #   public *;
 #}
+
+-keep class com.android.okhttp.internal.** { *; }
+-keep class android.** { *; }
+-keep class com.android.application.** { *; }
+-keep class com.android.support.** { *; }
+-keep class com.android.tools.** { *; }
+-keep class com.google.firebase.** { *; }
+-keep class com.google.android.gms.** { *; }
+-keep class com.github.bettehem.** { *; }
+-keep class org.jetbrains.kotlin.** { *; }
+-dontwarn **.**
+

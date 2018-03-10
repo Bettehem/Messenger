@@ -1,13 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical" android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:orientation="horizontal" android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:weightSum="100"
+    android:padding="4dp"
+    android:minHeight="45dp"
+    android:layout_marginBottom="8dp"
+    android:id="@+id/messageItemLayout">
 
-    <com.rockerhieu.emojicon.EmojiconTextView
-        android:id="@+id/messageItemTextView"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="20sp"
-        android:text="Test Text" />
+        android:orientation="vertical"
+        android:layout_weight="15"
+        android:paddingStart="4dp"
+        android:paddingLeft="4dp">
+        <com.rockerhieu.emojicon.EmojiconTextView
+            android:id="@+id/messageItemTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="20sp"
+            android:text="Test Text"
+            android:textColor="@android:color/white"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:layout_marginStart="4dp"
+        android:layout_marginLeft="4dp"
+        android:layout_marginBottom="8dp"
+        android:layout_gravity="bottom"
+        android:layout_weight="85"
+        android:gravity="bottom">
+
+        <android.support.v7.widget.AppCompatTextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/messageItemTime"
+            android:textColor="@android:color/white"
+            android:maxLines="1"/>
+    </LinearLayout>
 
 </LinearLayout>

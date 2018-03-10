@@ -12,6 +12,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 import android.widget.ViewFlipper;
 
 import com.github.bettehem.androidtools.Preferences;
@@ -168,9 +169,15 @@ public class ChatScreen extends Fragment implements View.OnClickListener, Messag
                 break;
 
             case R.id.chatScreenSendMessageButton:
-                ChatsManager.sendMessage(getActivity(), username, messageEditText.getText().toString(), messageItemListener);
-                messageAdapter.setMessageItems(ChatsManager.getMessageItems(getActivity(), username));
-                messageEditText.setText("");
+                if (!messageEditText.getText().toString().contentEquals("")){
+                    ChatsManager.sendMessage(getActivity(), username, messageEditText.getText().toString(), messageItemListener);
+                    messageAdapter.setMessageItems(ChatsManager.getMessageItems(getActivity(), username));
+                    messageEditText.setText("");
+                }
+                break;
+
+            case R.id.chatScreenEmojiSelectButton:
+                Toast.makeText(getActivity(), "Not implemented yet!", Toast.LENGTH_LONG).show();
                 break;
         }
     }
@@ -185,7 +192,12 @@ public class ChatScreen extends Fragment implements View.OnClickListener, Messag
                 ChatsManager.editChatItem(getActivity(), username, items.get(items.size() - 1).mMessage, items.get(items.size() - 1).mTime);
             }
         }catch (Exception e){
-
+            e.printStackTrace();
         }
+    }
+
+    @Override
+    public void onMessageItemUpdated(MessageItem item) {
+        messageAdapter.updateItem(item);
     }
 }

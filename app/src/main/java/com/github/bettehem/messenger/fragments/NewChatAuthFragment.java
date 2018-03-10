@@ -10,6 +10,7 @@ import android.text.InputType;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.github.bettehem.androidtools.Preferences;
 import com.github.bettehem.androidtools.dialog.CustomAlertDialog;
@@ -127,9 +128,14 @@ public class NewChatAuthFragment extends Fragment implements View.OnLongClickLis
         switch (v.getId()){
             case R.id.newChatAuthStartChatButton:
                 if (passwordEditText.getText().toString().contentEquals(confirmPasswordEditText.getText().toString())){
-                    ChatPreparer chatPreparer = new ChatPreparer(getActivity(), true, MainActivity.fragmentManager,  usernameEditText.getText().toString(), confirmPasswordEditText.getText().toString());
-                    chatPreparer.setRequestListener(MainActivity.chatRequestListener);
-                    chatPreparer.prepare();
+                    if (!passwordEditText.getText().toString().contentEquals("") && !confirmPasswordEditText.getText().toString().contentEquals("")
+                            && !usernameEditText.getText().toString().contentEquals("") && !usernameEditText.getText().toString().contentEquals("global")){
+                        ChatPreparer chatPreparer = new ChatPreparer(getActivity(), true, MainActivity.fragmentManager,  usernameEditText.getText().toString(), confirmPasswordEditText.getText().toString());
+                        chatPreparer.setRequestListener(MainActivity.chatRequestListener);
+                        chatPreparer.prepare();
+                    }else {
+                        CustomAlertDialog.make(getActivity(), "WARNING!", "You can't use an empty password.", false, "OK", null, "newChatEmptyPasswordDialog").show();
+                    }
                 }
                 break;
         }
