@@ -16,9 +16,11 @@ import android.widget.Toast;
 import android.widget.ViewFlipper;
 
 import com.github.bettehem.androidtools.Preferences;
+import com.github.bettehem.androidtools.dialog.CustomAlertDialog;
+import com.github.bettehem.androidtools.interfaces.DialogButtonsListener;
 import com.github.bettehem.messenger.MainActivity;
 import com.github.bettehem.messenger.R;
-import com.github.bettehem.messenger.gcm.MessengerGcmListenerServiceGcm;
+import com.github.bettehem.messenger.tools.fcm.MessengerGcmListenerServiceGcm;
 import com.github.bettehem.messenger.tools.adapters.ChatsScreenMessageAdapter;
 import com.github.bettehem.messenger.tools.items.MessageItem;
 import com.github.bettehem.messenger.tools.listeners.ChatItemListener;
@@ -26,7 +28,6 @@ import com.github.bettehem.messenger.tools.listeners.MessageItemListener;
 import com.github.bettehem.messenger.tools.managers.ChatsManager;
 
 import java.util.ArrayList;
-import java.util.Objects;
 
 public class ChatScreen extends Fragment implements View.OnClickListener, MessageItemListener {
 
@@ -71,9 +72,13 @@ public class ChatScreen extends Fragment implements View.OnClickListener, Messag
 
         setup();
 
-        checkStatus();
-
         return view;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        checkStatus();
     }
 
     private void setup(){
@@ -127,28 +132,30 @@ public class ChatScreen extends Fragment implements View.OnClickListener, Messag
 
 
 
-    private void checkStatus(){
-        String status = Preferences.loadString(getActivity(), "chatStatus", username);
-        switch (status){
-            case "normal":
-                //show normal chat
-                chatViews.setDisplayedChild(CHAT_VIEW);
-                ArrayList<MessageItem> items = ChatsManager.getMessageItems(getActivity(), username);
-                messageAdapter.setMessageItems(items);
-                messageRecycler.scrollToPosition(items.size() - 1);
-                break;
+    public void checkStatus(){
+        if (username != null){
+            String status = Preferences.loadString(getActivity(), "chatStatus", username);
+            switch (status){
+                case "normal":
+                    //show normal chat
+                    chatViews.setDisplayedChild(CHAT_VIEW);
+                    ArrayList<MessageItem> items = ChatsManager.getMessageItems(getActivity(), username);
+                    messageAdapter.setMessageItems(items);
+                    messageRecycler.scrollToPosition(items.size() - 1);
+                    break;
 
-            case "pending":
-                //show pending text
-                chatViews.setDisplayedChild(PENDING_VIEW);
-                AppCompatTextView textView = (AppCompatTextView) view.findViewById(R.id.pendingTextView);
-                textView.setText("Waiting for " + username + " to answer your chat request...");
-                break;
+                case "pending":
+                    //show pending text
+                    chatViews.setDisplayedChild(PENDING_VIEW);
+                    AppCompatTextView textView = (AppCompatTextView) view.findViewById(R.id.pendingTextView);
+                    textView.setText("Waiting for " + username + " to answer your chat request...");
+                    break;
 
-            case "chatRequest":
-                //show chat request screen
-                chatViews.setDisplayedChild(REQUEST_VIEW);
-                break;
+                case "chatRequest":
+                    //show chat request screen
+                    chatViews.setDisplayedChild(REQUEST_VIEW);
+                    break;
+            }
         }
     }
 
@@ -160,8 +167,26 @@ public class ChatScreen extends Fragment implements View.OnClickListener, Messag
     public void onClick(View v) {
         switch (v.getId()){
             case R.id.acceptChatRequestButton:
-                //TODO: Add check for empty password
-                ChatsManager.responseToRequest(getActivity(), true, username, passwordEditText.getText().toString(), chatItemListener);
+                if (!passwordEditText.getText().toString().contentEquals("")){
+                    ChatsManager.responseToRequest(getActivity(), true, username, passwordEditText.getText().toString(), chatItemListener);
+                }else {
+                    CustomAlertDialog.make(getActivity(), "Warning!", "You can't use an empty password", false, "Ok", new DialogButtonsListener() {
+                        @Override
+                        public void onPositiveButtonClicked(String id) {
+
+                        }
+
+                        @Override
+                        public void onNeutralButtonClicked(String id) {
+
+                        }
+
+                        @Override
+                        public void onNegativeButtonClicked(String id) {
+
+                        }
+                    }, "requestResponseEmptyPasswordDialog").show();
+                }
                 break;
 
             case R.id.rejectChatRequestButton:

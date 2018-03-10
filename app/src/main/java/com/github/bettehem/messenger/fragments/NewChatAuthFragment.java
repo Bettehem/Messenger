@@ -134,7 +134,22 @@ public class NewChatAuthFragment extends Fragment implements View.OnLongClickLis
                         chatPreparer.setRequestListener(MainActivity.chatRequestListener);
                         chatPreparer.prepare();
                     }else {
-                        CustomAlertDialog.make(getActivity(), "WARNING!", "You can't use an empty password.", false, "OK", null, "newChatEmptyPasswordDialog").show();
+                        CustomAlertDialog.make(getActivity(), "WARNING!", "You can't use an empty password.", false, "OK", new DialogButtonsListener() {
+                            @Override
+                            public void onPositiveButtonClicked(String id) {
+
+                            }
+
+                            @Override
+                            public void onNeutralButtonClicked(String id) {
+
+                            }
+
+                            @Override
+                            public void onNegativeButtonClicked(String id) {
+
+                            }
+                        }, "newChatEmptyPasswordDialog").show();
                     }
                 }
                 break;

@@ -228,7 +228,7 @@ public abstract class ChatsManager {
         //if the item already exists, modify it instead
         boolean itemExists = false;
         for (int i = 0; i < items.size(); i++){
-            if (items.get(i).mMessageId.contentEquals(messageItem.mMessageId)){
+            if (items.get(i).mMessageId != null && items.get(i).mMessageId.contentEquals(messageItem.mMessageId)){
                 MessageItem item = items.get(i);
                 item.mMessageId = messageItem.mMessageId;
                 item.mMessage = messageItem.mMessage;
@@ -329,7 +329,7 @@ public abstract class ChatsManager {
         setChatStatus(context, chatStatus, name);
 
         //open chat screen
-        ChatScreen chatScreen = new ChatScreen();
+        ChatScreen chatScreen = MainActivity.chatScreen;
         chatScreen.setChatItemListener(listener);
         fragmentManager.beginTransaction().replace(fragmentId, chatScreen).commit();
 
@@ -448,7 +448,7 @@ public abstract class ChatsManager {
             data.put("requestAccepted", String.valueOf(acceptRequest));
             data.put("password", readyUsername);
             jsonObject.put("data", data);
-            jsonObject.put("TTL", "15");
+            jsonObject.put("TTL", "30");
         }catch (JSONException e){
             e.printStackTrace();
         }

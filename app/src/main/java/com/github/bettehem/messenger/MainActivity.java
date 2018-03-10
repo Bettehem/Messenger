@@ -26,6 +26,7 @@ import android.widget.RelativeLayout;
 import android.widget.ViewFlipper;
 
 import com.github.bettehem.androidtools.Preferences;
+import com.github.bettehem.messenger.fragments.ChatScreen;
 import com.github.bettehem.messenger.fragments.NewChatAuthFragment;
 import com.github.bettehem.messenger.fragments.NewProfileFragment;
 import com.github.bettehem.messenger.fragments.SettingsFragment;
@@ -75,6 +76,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private NavigationView navigationView;
     private EmojiconTextView emojiTextView;
     private AppCompatTextView usernameTextView, statusTextView;
+    public static ChatScreen chatScreen;
 
     private boolean isFabPressed = false;
 
@@ -100,6 +102,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private void setup(){
         toolbars();
+        fragments();
         buttons();
         navDrawer();
         recyclers();
@@ -112,6 +115,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         MainActivity.toolbar.setSubtitle("Chats");
         setSupportActionBar(toolbar);
+    }
+
+    private void fragments(){
+        chatScreen = new ChatScreen();
     }
 
     private void buttons(){
@@ -390,7 +397,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
 
-    //gcm stuff
+    //fcm stuff
     /**
      * Check the device to make sure it has the Google Play Services APK. If
      * it doesn't, display a dialog that allows users to download the APK from

@@ -1,4 +1,4 @@
-package com.github.bettehem.messenger.gcm;
+package com.github.bettehem.messenger.tools.fcm;
 
 import android.os.Handler;
 
@@ -66,8 +66,8 @@ public class MessengerGcmListenerServiceGcm extends FirebaseMessagingService imp
                     String sender = getSender((String) data.get("sender"));
 
                     //check if right sender
-                    if (EncryptionManager.createHash(Preferences.loadString(getApplicationContext(), "iv", sender)).contentEquals((String) data.get("iv"))){
-                        final String chatStartSender = "";
+                    if (data.get("hash") != null && EncryptionManager.createHash(Preferences.loadString(getApplicationContext(), "iv", sender)).contentEquals((String) data.get("hash"))){
+                        final String chatStartSender = sender;
                         boolean correctPassword = Boolean.valueOf((String) data.get("correctPassword"));
                         if (correctPassword){
                             myRunnable = () -> ChatsManager.startNormalChat(getApplication(), chatStartSender, null);
@@ -106,7 +106,9 @@ public class MessengerGcmListenerServiceGcm extends FirebaseMessagingService imp
         //show a notification
         notification(getApplicationContext(), "Messenger - " + senderData.userName, message, senderData.isSecretMessage);
         //save message
-        ChatsManager.saveMessage(getApplicationContext(), senderData.userName, new MessageItem(message, messageId, new Time(Calendar.getInstance()), false));
+        if (messageId != null){
+            ChatsManager.saveMessage(getApplicationContext(), senderData.userName, new MessageItem(message, messageId, new Time(Calendar.getInstance()), false));
+        }
         if (messageItemListener != null && Preferences.loadBoolean(getApplicationContext(), "appVisible")){
             messageItemListener.onMessageListUpdated();
         }

@@ -1,4 +1,4 @@
-package com.github.bettehem.messenger.gcm;
+package com.github.bettehem.messenger.tools.fcm;
 
 import android.util.Log;
 import com.google.firebase.iid.FirebaseInstanceId;
