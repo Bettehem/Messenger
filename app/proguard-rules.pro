@@ -32,5 +32,8 @@
 -keep class org.apache.legacy.** { *; }
 -keep class de.hdodenhof.** { *; }
 -keep class com.google.gms.** { *; }
+-keep class org.apache.commons.codec.android.binary.** { *; }
+-keep class javax.crypto.** { *; }
+-keep class java.security.** { *; }
 -dontwarn **.**
 

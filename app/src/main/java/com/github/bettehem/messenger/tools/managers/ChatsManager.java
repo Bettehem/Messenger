@@ -171,7 +171,9 @@ public abstract class ChatsManager {
         }
 
         sendHttpPost(jsonObject, response -> {
-            //Snackbar.make(MainActivity.mainRelativeLayout, "Status: " + response.getStatusLine().getReasonPhrase(), Snackbar.LENGTH_SHORT).show();
+            if (!response.getStatusLine().getReasonPhrase().contentEquals("OK")){
+                Snackbar.make(MainActivity.mainRelativeLayout, "Status: " + response.getStatusLine().getReasonPhrase(), Snackbar.LENGTH_SHORT).show();
+            }
         });
 
 
@@ -480,13 +482,13 @@ public abstract class ChatsManager {
             data.put("hash", ivHash);
             data.put("sender", Preferences.loadString(context, "name", ProfileManager.FILENAME));
             jsonObject.put("data", data);
-            jsonObject.put("TTL", String.valueOf(60*5));
+            jsonObject.put("TTL", String.valueOf(10));
         }catch (JSONException e){
             e.printStackTrace();
         }
 
         sendHttpPost(jsonObject, response -> {
-            Snackbar.make(MainActivity.mainRelativeLayout, "Status: " + response.getStatusLine().getReasonPhrase(), Snackbar.LENGTH_SHORT).show();
+            Snackbar.make(MainActivity.mainRelativeLayout, "Starting chat with" + username, Snackbar.LENGTH_SHORT).show();
         });
 
         if (correctPassword) {
