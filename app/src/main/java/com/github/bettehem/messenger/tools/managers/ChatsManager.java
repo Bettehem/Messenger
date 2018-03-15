@@ -46,14 +46,6 @@ import java.util.Calendar;
 public abstract class ChatsManager {
     public static final String SPLITTER = "_kjhas3ng7vb3b3a-XYZYX-di8x888xgwbkwv0vaw3pxds22_";
 
-    private static String getAccessToken() throws IOException {
-        GoogleCredential googleCredential = GoogleCredential
-                .fromStream(new FileInputStream("Messenger-sKEY.json"));
-        googleCredential.refreshToken();
-        return googleCredential.getAccessToken();
-    }
-
-
     public static ArrayList<ChatItem> getChatItems(Context context) {
 
         //Get current chat items
@@ -75,6 +67,7 @@ public abstract class ChatsManager {
      * @return Returns a String that can be used for the chat items.
      */
     public static String formatTime(Time time) {
+        // FIXME: 3/15/18 doesn't work as intended
         //TODO: Remove hard-coded strings;
 
         String formatted;
@@ -178,7 +171,7 @@ public abstract class ChatsManager {
         }
 
         sendHttpPost(jsonObject, response -> {
-            Snackbar.make(MainActivity.mainRelativeLayout, "Status: " + response.getStatusLine().getReasonPhrase(), Snackbar.LENGTH_SHORT).show();
+            //Snackbar.make(MainActivity.mainRelativeLayout, "Status: " + response.getStatusLine().getReasonPhrase(), Snackbar.LENGTH_SHORT).show();
         });
 
 
@@ -566,13 +559,13 @@ public abstract class ChatsManager {
             data.put("sender", Preferences.loadString(context, "name", ProfileManager.FILENAME));
             data.put("messageId", messageId);
             jsonObject.put("data", data);
-            jsonObject.put("TTL", String.valueOf(30));
+            jsonObject.put("TTL", String.valueOf(10));
         }catch (JSONException e){
             e.printStackTrace();
         }
 
         sendHttpPost(jsonObject, response -> {
-            Snackbar.make(MainActivity.mainRelativeLayout, "Status: " + response.getStatusLine().getReasonPhrase(), Snackbar.LENGTH_SHORT).show();
+            //Snackbar.make(MainActivity.mainRelativeLayout, "Status: " + response.getStatusLine().getReasonPhrase(), Snackbar.LENGTH_SHORT).show();
         });
     }
 

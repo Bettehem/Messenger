@@ -157,7 +157,7 @@ public class NewProfileFragment extends Fragment implements View.OnClickListener
 
                     ProfileManager.saveProfile(getActivity(), new UserProfile(emoji, name, status));
                 } else {
-                    CustomAlertDialog.make(getActivity(), getString(R.string.oopsText), getString(R.string.allFieldsRequiedText), false, getString(R.string.okText), this, "noDataInFieldError").show();
+                    CustomAlertDialog.make(getActivity(), getString(R.string.oopsText), getString(R.string.allFieldsRequiredText), false, getString(R.string.okText), this, "noDataInFieldError").show();
                 }
 
 

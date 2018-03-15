@@ -12,7 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:layout_weight="15"
+        android:layout_weight="20"
         android:paddingStart="4dp"
         android:paddingLeft="4dp">
         <com.rockerhieu.emojicon.EmojiconTextView
@@ -32,7 +32,7 @@
         android:layout_marginLeft="4dp"
         android:layout_marginBottom="8dp"
         android:layout_gravity="bottom"
-        android:layout_weight="85"
+        android:layout_weight="80"
         android:gravity="bottom">
 
         <android.support.v7.widget.AppCompatTextView
@@ -40,7 +40,11 @@
             android:layout_height="wrap_content"
             android:id="@+id/messageItemTime"
             android:textColor="@android:color/white"
-            android:maxLines="1"/>
+            android:maxLines="1"
+            android:layout_gravity="end"
+            android:gravity="end"
+            android:paddingEnd="2dp"
+            android:paddingRight="2dp" />
     </LinearLayout>
 
 </LinearLayout>

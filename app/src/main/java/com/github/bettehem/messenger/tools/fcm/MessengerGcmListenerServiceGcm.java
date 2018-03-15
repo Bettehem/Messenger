@@ -79,7 +79,7 @@ public class MessengerGcmListenerServiceGcm extends FirebaseMessagingService imp
                     }
                     break;
 
-                case "deliveryReport":
+                case "deliveryreport":
                     String reportSender = getSender((String) data.get("sender"));
                     String messageId = (String) data.get("messageId");
                     //save report
@@ -114,6 +114,6 @@ public class MessengerGcmListenerServiceGcm extends FirebaseMessagingService imp
         }
 
         //send delivery report
-        ChatsManager.sendDeliveryReport(getApplicationContext(), EncryptionManager.createHash(Preferences.loadString(getApplicationContext(), "encryptedUsername", senderData.userName)), messageId);
+        ChatsManager.sendDeliveryReport(getApplicationContext(), senderData.userName, messageId);
     }
 }
