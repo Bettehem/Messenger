@@ -109,8 +109,8 @@ public class MessengerGcmListenerServiceGcm extends FirebaseMessagingService imp
         if (messageId != null){
             ChatsManager.saveMessage(getApplicationContext(), senderData.userName, new MessageItem(message, messageId, new Time(Calendar.getInstance()), false));
         }
-        if (messageItemListener != null && Preferences.loadBoolean(getApplicationContext(), "appVisible")){
-            messageItemListener.onMessageListUpdated();
+        if (messageItemListener != null){
+            messageItemListener.onMessageListUpdated(getApplicationContext());
         }
 
         //send delivery report

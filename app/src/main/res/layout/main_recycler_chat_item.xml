@@ -35,7 +35,9 @@
         android:id="@+id/chatMessageTextView"
         android:layout_alignBottom="@+id/chatProfileIcon"
         android:layout_alignLeft="@+id/chatNameTextView"
-        android:layout_alignStart="@+id/chatNameTextView" />
+        android:layout_alignStart="@+id/chatNameTextView"
+        android:maxLines="1"
+        android:ellipsize="end"/>
 
     <android.support.v7.widget.AppCompatTextView
         android:layout_width="wrap_content"

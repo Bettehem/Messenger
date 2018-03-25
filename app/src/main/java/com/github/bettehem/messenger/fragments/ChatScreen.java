@@ -1,5 +1,6 @@
 package com.github.bettehem.messenger.fragments;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -71,6 +72,8 @@ public class ChatScreen extends Fragment implements View.OnClickListener, Messag
         MessengerGcmListenerServiceGcm.setMessageItemListener(messageItemListener);
 
         setup();
+
+        checkStatus();
 
         return view;
     }
@@ -163,6 +166,10 @@ public class ChatScreen extends Fragment implements View.OnClickListener, Messag
         this.chatItemListener = chatItemListener;
     }
 
+    public void setMessageItemListener(){
+        messageItemListener = this;
+    }
+
     @Override
     public void onClick(View v) {
         switch (v.getId()){
@@ -208,14 +215,14 @@ public class ChatScreen extends Fragment implements View.OnClickListener, Messag
     }
 
     @Override
-    public void onMessageListUpdated() {
+    public void onMessageListUpdated(Context context) {
         try {
-            if (Preferences.loadBoolean(getActivity(), "appVisible")){
-                ArrayList<MessageItem> items = ChatsManager.getMessageItems(getActivity(), username);
+            ArrayList<MessageItem> items = ChatsManager.getMessageItems(context, username);
+            if (Preferences.loadBoolean(context, "appVisible")){
                 messageAdapter.setMessageItems(items);
                 messageRecycler.scrollToPosition(items.size() - 1);
-                ChatsManager.editChatItem(getActivity(), username, items.get(items.size() - 1).mMessage, items.get(items.size() - 1).mTime);
             }
+            ChatsManager.editChatItem(context, username, items.get(items.size() - 1).mMessage, items.get(items.size() - 1).mTime);
         }catch (Exception e){
             e.printStackTrace();
         }

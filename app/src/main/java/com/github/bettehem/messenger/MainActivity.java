@@ -163,6 +163,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         chatItemListener = this;
         ProfileManager.setProfileListener(this);
         RequestResponse.setRequestListener(this);
+        chatScreen.setMessageItemListener();
     }
 
     private void layouts(){

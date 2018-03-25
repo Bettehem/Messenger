@@ -179,7 +179,7 @@ public abstract class ChatsManager {
 
         //save the sent message
         saveMessage(context, username, new MessageItem(message, messageId, new Time(Calendar.getInstance()), true));
-        messageItemListener.onMessageListUpdated();
+        messageItemListener.onMessageListUpdated(context);
     }
 
     public static String getMessage(Context context, Sender senderData, String rawMessage) {
@@ -304,7 +304,7 @@ public abstract class ChatsManager {
         if (usernameExists(context, username)) {
             editChatItem(context, username, "Pending...", new Time(Calendar.getInstance()));
         } else {
-            saveChatItem(context, username, "Pending...", new Time(Calendar.getInstance()));
+            saveChatItem(context, getChatItems(context).size(), username, "Pending...", new Time(Calendar.getInstance()));
         }
 
         sendRequest(context, encryptedUsername.get(0), username);
@@ -327,6 +327,7 @@ public abstract class ChatsManager {
         ChatScreen chatScreen = MainActivity.chatScreen;
         chatScreen.setChatItemListener(listener);
         fragmentManager.beginTransaction().replace(fragmentId, chatScreen).commit();
+        chatScreen.checkStatus();
 
         //change viewFlipper to show fragments
         MainActivity.mainViewFlipper.setDisplayedChild(MainActivity.MAIN_FRAGMENT);
@@ -375,7 +376,7 @@ public abstract class ChatsManager {
                 editChatItem(context, sender, "New Chat Request", new Time(Calendar.getInstance()));
             } else {
                 //Save a chat item for this chat
-                saveChatItem(context, sender, "New Chat Request", new Time(Calendar.getInstance()));
+                saveChatItem(context, getChatItems(context).size(), sender, "New Chat Request", new Time(Calendar.getInstance()));
             }
 
             //save the username hash
@@ -487,8 +488,14 @@ public abstract class ChatsManager {
             e.printStackTrace();
         }
 
+        try{
+            //wait for a second so the other user has time to subscribe for the topic so they will know that a chat is started
+            Thread.sleep(1000);
+        }catch (InterruptedException e){
+            e.printStackTrace();
+        }
         sendHttpPost(jsonObject, response -> {
-            Snackbar.make(MainActivity.mainRelativeLayout, "Starting chat with" + username, Snackbar.LENGTH_SHORT).show();
+            Snackbar.make(MainActivity.mainRelativeLayout, "Starting chat with " + username, Snackbar.LENGTH_SHORT).show();
         });
 
         if (correctPassword) {
@@ -543,11 +550,13 @@ public abstract class ChatsManager {
 
         //save the items
         for (ChatItem c : chatItems) {
-            saveChatItem(context, c.name, c.message, c.time);
+            saveChatItem(context, chatItems.size(), c.name, c.message, c.time);
         }
 
-        //update list
-        MainActivity.chatItemListener.onChatItemListUpdated(getChatItems(context));
+        //update list if app is visible
+        if (Preferences.loadBoolean(context, "appVisible")){
+            MainActivity.chatItemListener.onChatItemListUpdated(getChatItems(context));
+        }
     }
 
 
@@ -610,16 +619,18 @@ public abstract class ChatsManager {
         Preferences.saveString(context, "chatStatus", status, username);
     }
 
-    private static void saveChatItem(Context context, String username, String message, Time time) {
+    private static void saveChatItem(Context context, int chatItemsAmount, String username, String message, Time time) {
 
         //Get current chat items
         ArrayList<ChatItem> chatItems = new ArrayList<>();
-        int chatAmount = Preferences.loadInt(context, "chatsAmount", "ChatDetails");
+        int chatAmount = chatItemsAmount;
         for (int i = 0; i < chatAmount; i++) {
             String[] item = Preferences.loadStringArray(context, "chatItem_" + i, "ChatDetails");
-            Calendar calendar = Calendar.getInstance();
-            calendar.setTimeInMillis(Long.valueOf(item[2]));
-            chatItems.add(new ChatItem(item[0], item[1], new Time(calendar)));
+            if (item.length == 3){
+                Calendar calendar = Calendar.getInstance();
+                calendar.setTimeInMillis(Long.valueOf(item[2]));
+                chatItems.add(new ChatItem(item[0], item[1], new Time(calendar)));
+            }
         }
 
 
