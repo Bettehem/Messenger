@@ -327,7 +327,7 @@ public abstract class ChatsManager {
         ChatScreen chatScreen = MainActivity.chatScreen;
         chatScreen.setChatItemListener(listener);
         fragmentManager.beginTransaction().replace(fragmentId, chatScreen).commit();
-        chatScreen.checkStatus();
+        chatScreen.checkStatus(context);
 
         //change viewFlipper to show fragments
         MainActivity.mainViewFlipper.setDisplayedChild(MainActivity.MAIN_FRAGMENT);

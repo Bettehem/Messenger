@@ -73,7 +73,7 @@ public class ChatScreen extends Fragment implements View.OnClickListener, Messag
 
         setup();
 
-        checkStatus();
+        checkStatus(getActivity());
 
         return view;
     }
@@ -81,7 +81,7 @@ public class ChatScreen extends Fragment implements View.OnClickListener, Messag
     @Override
     public void onResume() {
         super.onResume();
-        checkStatus();
+        checkStatus(getActivity());
     }
 
     private void setup(){
@@ -135,14 +135,14 @@ public class ChatScreen extends Fragment implements View.OnClickListener, Messag
 
 
 
-    public void checkStatus(){
+    public void checkStatus(Context context){
         if (username != null){
-            String status = Preferences.loadString(getActivity(), "chatStatus", username);
+            String status = Preferences.loadString(context, "chatStatus", username);
             switch (status){
                 case "normal":
                     //show normal chat
                     chatViews.setDisplayedChild(CHAT_VIEW);
-                    ArrayList<MessageItem> items = ChatsManager.getMessageItems(getActivity(), username);
+                    ArrayList<MessageItem> items = ChatsManager.getMessageItems(context, username);
                     messageAdapter.setMessageItems(items);
                     messageRecycler.scrollToPosition(items.size() - 1);
                     break;
