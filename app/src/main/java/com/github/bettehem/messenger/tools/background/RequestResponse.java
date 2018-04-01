@@ -42,7 +42,7 @@ public class RequestResponse {
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
             if (chatRequestListener != null){
-                chatRequestListener.onChatRequestResponse(chatRequestResponseInfo);
+                chatRequestListener.onChatRequestResponse(context, chatRequestResponseInfo);
             }
         }
     }

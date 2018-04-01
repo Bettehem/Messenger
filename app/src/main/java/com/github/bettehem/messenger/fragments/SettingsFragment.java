@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.AppCompatButton;
+import android.support.v7.widget.AppCompatTextView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,6 +19,7 @@ public class SettingsFragment extends Fragment implements View.OnClickListener {
 
     private View view;
     private AppCompatButton resetProfileButton;
+    private AppCompatTextView appVersionText;
     private SettingsListener settingsListener;
 
     public void setListener(SettingsListener listener){
@@ -36,13 +38,18 @@ public class SettingsFragment extends Fragment implements View.OnClickListener {
 
     private void setup() {
         buttons();
-
+        textViews();
     }
 
     private void buttons() {
         resetProfileButton = (AppCompatButton) view.findViewById(R.id.resetProfileButton);
 
         resetProfileButton.setOnClickListener(this);
+    }
+
+    private void textViews(){
+        appVersionText = view.findViewById(R.id.settingsAppVersionText);
+        appVersionText.setText(getString(R.string.appVersionText) + " " + getString(R.string.app_version));
     }
 
     @Override

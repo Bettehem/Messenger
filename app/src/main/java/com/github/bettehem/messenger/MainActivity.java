@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.view.ViewCompat;
@@ -53,6 +54,7 @@ import com.rockerhieu.emojicon.EmojiconTextView;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, View.OnClickListener, ChatRequestListener, ChatItemListener, ProfileListener, View.OnLongClickListener, TopicListener, SettingsListener {
 
@@ -433,7 +435,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     @Override
-    public void onChatRequestResponse(ChatRequestResponseInfo responseInfo) {
+    public void onChatRequestResponse(Context context, ChatRequestResponseInfo responseInfo) {
         if (responseInfo.requestAccepted){
             //If other user accepted the chat request, start the chat if password was also correct
 
@@ -442,6 +444,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         }else{
             //TODO: Request rejected
+            if (Preferences.loadBoolean(context, "appVisible")){
+                Snackbar.make(Objects.requireNonNull(MainActivity.currentFragment.getView()), "User rejected your request", Snackbar.LENGTH_LONG).show();
+            }
         }
     }
 

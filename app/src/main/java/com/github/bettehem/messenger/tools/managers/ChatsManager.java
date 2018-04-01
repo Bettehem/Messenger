@@ -483,17 +483,11 @@ public abstract class ChatsManager {
             data.put("hash", ivHash);
             data.put("sender", Preferences.loadString(context, "name", ProfileManager.FILENAME));
             jsonObject.put("data", data);
-            jsonObject.put("TTL", String.valueOf(10));
+            jsonObject.put("TTL", String.valueOf(15));
         }catch (JSONException e){
             e.printStackTrace();
         }
 
-        try{
-            //wait for a second so the other user has time to subscribe for the topic so they will know that a chat is started
-            Thread.sleep(1000);
-        }catch (InterruptedException e){
-            e.printStackTrace();
-        }
         sendHttpPost(jsonObject, response -> {
             Snackbar.make(MainActivity.mainRelativeLayout, "Starting chat with " + username, Snackbar.LENGTH_SHORT).show();
         });

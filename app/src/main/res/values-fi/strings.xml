@@ -9,4 +9,5 @@
     <string name="emojiLimitFullText">Emoji</string>
     <string name="okText">OK</string>
     <string name="allFieldsRequiredText">Kaikki kentät pitää olla täytettynä.</string>
+    <string name="appVersionText">"Sovellusversio:"</string>
 </resources>
