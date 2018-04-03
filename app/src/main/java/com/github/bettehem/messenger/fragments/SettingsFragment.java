@@ -10,6 +10,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.github.bettehem.androidtools.Preferences;
+import com.github.bettehem.messenger.MainActivity;
 import com.github.bettehem.messenger.R;
 import com.github.bettehem.messenger.tools.listeners.SettingsListener;
 import com.github.bettehem.messenger.tools.managers.ProfileManager;
@@ -30,6 +31,10 @@ public class SettingsFragment extends Fragment implements View.OnClickListener {
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         view = inflater.inflate(R.layout.fragment_settings, container, false);
+
+        //save the current fragment
+        MainActivity.currentFragment = this;
+        Preferences.saveString(getActivity(), "currentFragment", "ChatScreen");
 
         setup();
 
