@@ -4,8 +4,8 @@ apply plugin: 'kotlin-android'
 android {
     compileSdkVersion 27
     buildToolsVersion '27.0.3'
-    int appVersionCode = 8
-    String appVersionName = "0.08"
+    int appVersionCode = 9
+    String appVersionName = "0.09"
 
 
 

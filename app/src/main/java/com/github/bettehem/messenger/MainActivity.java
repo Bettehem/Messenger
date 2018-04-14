@@ -492,6 +492,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 case "chatRequest":
                     ChatsManager.openChatScreen(this, getIntent().getExtras().getString("username"), "chatRequest", R.id.mainFrameLayout, getSupportFragmentManager(), this);
                     break;
+
+                case "message":
+                    ChatsManager.openChatScreen(this, getIntent().getExtras().getString("username"), "normal", R.id.mainFrameLayout, getSupportFragmentManager(), this);
+                    newChatButton.hide();
+                    break;
             }
         }
     }
