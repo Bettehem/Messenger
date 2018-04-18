@@ -41,6 +41,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 
 // TODO: 3/9/18 Add more comments, so it's easier to understand what's happening
 public abstract class ChatsManager {
@@ -165,7 +166,7 @@ public abstract class ChatsManager {
             // TODO: 9/30/17 add support for secret messages
             data.put("isSecretMessage", "false");
             jsonObject.put("data", data);
-            jsonObject.put("TTL", String.valueOf(60 * 60));
+            jsonObject.put("TTL", String.valueOf(60 * 60 * 7));
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -541,6 +542,10 @@ public abstract class ChatsManager {
 
         //delete the old items
         Preferences.deleteAllValues(context, "ChatDetails");
+
+        //sort items so that latest item is on top
+        Collections.sort(chatItems);
+        //Collections.reverse(chatItems);
 
         //save the items
         for (ChatItem c : chatItems) {
