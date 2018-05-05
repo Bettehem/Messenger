@@ -50,7 +50,7 @@ public class MessengerGcmListenerServiceGcm extends FirebaseMessagingService imp
                     break;
 
                 case "message":
-                    ReceivedMessage receivedMessage = new ReceivedMessage(getApplicationContext(), true, data.get("sender") + ChatsManager.SPLITTER + data.get("isSecretMessage"), (String) data.get("message"), (String) data.get("messageId"));
+                    ReceivedMessage receivedMessage = new ReceivedMessage(getApplicationContext(), true, data.get("sender") + ChatsManager.SPLITTER + data.get("isSecretMessage") + ChatsManager.SPLITTER + data.get("emoji"), (String) data.get("message"), (String) data.get("messageId"));
                     receivedMessage.setMessageListener(this);
                     receivedMessage.getMessage();
                     break;

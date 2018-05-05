@@ -55,7 +55,11 @@ public abstract class ChatsManager {
             String[] item = Preferences.loadStringArray(context, "chatItem_" + i, "ChatDetails");
             Calendar calendar = Calendar.getInstance();
             calendar.setTimeInMillis(Long.valueOf(item[2]));
-            chatItems.add(new ChatItem(item[0], item[1], new Time(calendar)));
+            String emoji = "";
+            if (item.length == 4){
+                emoji = item[3];
+            }
+            chatItems.add(new ChatItem(item[0], item[1], new Time(calendar), emoji));
         }
         return chatItems;
     }
@@ -116,8 +120,13 @@ public abstract class ChatsManager {
 
     public static Sender getSenderData(Context context, String senderData) {
         String userName = getUserName(context, senderData);
-        boolean isSecretMessage = Boolean.valueOf(senderData.split(SPLITTER)[1]);
-        return new Sender(userName, isSecretMessage);
+        String[] data = senderData.split(SPLITTER);
+        boolean isSecretMessage = Boolean.valueOf(data[1]);
+        String emoji = "";
+        if (data.length == 3){
+            emoji = data[2];
+        }
+        return new Sender(userName, isSecretMessage, emoji);
     }
 
     public static void sendHttpPost(JSONObject data, HttpPostListener listener){
@@ -162,6 +171,7 @@ public abstract class ChatsManager {
             data.put("sender", Preferences.loadString(context, "name", ProfileManager.FILENAME));
             data.put("message", encryptedData.get(1));
             data.put("messageId", messageId);
+            data.put("emoji", Preferences.loadString(context, "emoji", ProfileManager.FILENAME));
             // TODO: 9/30/17 add support for secret messages
             data.put("isSecretMessage", "false");
             jsonObject.put("data", data);
@@ -302,9 +312,9 @@ public abstract class ChatsManager {
         // TODO: 8/11/17 remove hard-coded strings
         //save a chat item
         if (usernameExists(context, username)) {
-            editChatItem(context, username, "Pending...", new Time(Calendar.getInstance()));
+            editChatItem(context, username, "", "Pending...", new Time(Calendar.getInstance()));
         } else {
-            saveChatItem(context, getChatItems(context).size(), username, "Pending...", new Time(Calendar.getInstance()));
+            saveChatItem(context, username, "","Pending...", new Time(Calendar.getInstance()));
         }
 
         sendRequest(context, encryptedUsername.get(0), username);
@@ -373,10 +383,10 @@ public abstract class ChatsManager {
 
             if (usernameExists(context, sender)) {
                 //edit the existing chat item
-                editChatItem(context, sender, "New Chat Request", new Time(Calendar.getInstance()));
+                editChatItem(context, sender, "","New Chat Request", new Time(Calendar.getInstance()));
             } else {
                 //Save a chat item for this chat
-                saveChatItem(context, getChatItems(context).size(), sender, "New Chat Request", new Time(Calendar.getInstance()));
+                saveChatItem(context, sender, "", "New Chat Request", new Time(Calendar.getInstance()));
             }
 
             //save the username hash
@@ -495,7 +505,7 @@ public abstract class ChatsManager {
         if (correctPassword) {
             //Edit current chatItem
             //TODO: Remove hard-coded strings
-            editChatItem(context, username, "Chat Started", new Time(Calendar.getInstance()));
+            editChatItem(context, username, "","Chat Started", new Time(Calendar.getInstance()));
 
             //open the chat screen if user is not in chat list
             if (!Preferences.loadString(context, "currentFragment").contentEquals("")) {
@@ -506,10 +516,16 @@ public abstract class ChatsManager {
         }
     }
 
+    /**
+     * Starts a normal chat with the given user
+     * @param context App context
+     * @param username Username of other user
+     * @param listener Listener for chat item events
+     */
     public static void startNormalChat(Context context, String username, ChatItemListener listener) {
         //TODO: Remove hard-coded strings
         //Edit the chatItem
-        editChatItem(context, username, "Chat Started", new Time(Calendar.getInstance()));
+        editChatItem(context, username,  "","Chat Started", new Time(Calendar.getInstance()));
 
         //TODO: set the chat status
 
@@ -521,21 +537,45 @@ public abstract class ChatsManager {
         openChatScreen(context, username, "normal", R.id.mainFrameLayout, MainActivity.fragmentManager, listener);
     }
 
-    public static void editChatItem(Context context, String username, String newMessage, Time newTime) {
-        //Get current chat items
+    /**
+     * Used to edit a chat item in main chat list
+     * @param context App context
+     * @param username Username of other user
+     * @param userEmoji Their profile emoji
+     * @param newMessage The new message to replace the existing one
+     * @param newTime the time to be shown in the item
+     */
+    public static void editChatItem(Context context, String username, String userEmoji, String newMessage, Time newTime) {
+        //Get current chat items in to this ArrayList
         ArrayList<ChatItem> chatItems = new ArrayList<>();
+
+
+        //get amount of chats
         int chatAmount = Preferences.loadInt(context, "chatsAmount", "ChatDetails");
+        //loop through existing items
         for (int i = 0; i < chatAmount; i++) {
+            //get item data
             String[] item = Preferences.loadStringArray(context, "chatItem_" + i, "ChatDetails");
+            //get item time
             Calendar calendar = Calendar.getInstance();
             calendar.setTimeInMillis(Long.valueOf(item[2]));
-            chatItems.add(new ChatItem(item[0], item[1], new Time(calendar)));
+            //check if item contains emoji       ---    This is for backwards compatibility.
+            String emoji = "";
+            if (item.length == 4){
+                emoji = item[3];
+            }
+            //add item to ArrayList
+            chatItems.add(new ChatItem(item[0], item[1], new Time(calendar), emoji));
         }
 
-        //Edit the items
+
+        //Edit the required item(s)
+        //loop through items
         for (int i = 0; i < chatItems.size(); i++) {
+            //check if username matches
             if (chatItems.get(i).name.contentEquals(username)) {
-                chatItems.set(i, new ChatItem(username, newMessage, newTime));
+                //modify item
+                chatItems.set(i, new ChatItem(username, newMessage, newTime, userEmoji));
             }
         }
 
@@ -544,11 +584,12 @@ public abstract class ChatsManager {
 
         //save the items
         for (ChatItem c : chatItems) {
-            saveChatItem(context, chatItems.size(), c.name, c.message, c.time);
+            saveChatItem(context, c.name, c.emoji, c.message, c.time);
         }
 
         //update list if app is visible
         if (Preferences.loadBoolean(context, "appVisible")){
+            //inform listener that a chat item has been modified
             MainActivity.chatItemListener.onChatItemListUpdated(getChatItems(context));
         }
     }
@@ -613,23 +654,41 @@ public abstract class ChatsManager {
         Preferences.saveString(context, "chatStatus", status, username);
     }
 
-    private static void saveChatItem(Context context, int chatItemsAmount, String username, String message, Time time) {
-
-        //Get current chat items
+    /**
+     * Saves a chat item
+     * @param context App context
+     * @param username Other user's username
+     * @param userEmoji Other user's profile emoji
+     * @param message Message to add to the item
+     * @param time Time to be shown on the item
+     */
+    private static void saveChatItem(Context context, String username, String userEmoji, String message, Time time) {
+        //Get current chat items in to this list
         ArrayList<ChatItem> chatItems = new ArrayList<>();
-        int chatAmount = chatItemsAmount;
+
+        //get amount of chats
+        int chatAmount = Preferences.loadInt(context, "chatsAmount", "ChatDetails");
+
         for (int i = 0; i < chatAmount; i++) {
+            //get item data
             String[] item = Preferences.loadStringArray(context, "chatItem_" + i, "ChatDetails");
-            if (item.length == 3){
-                Calendar calendar = Calendar.getInstance();
+            Calendar calendar = Calendar.getInstance();
+            if (item.length >= 3){
                 calendar.setTimeInMillis(Long.valueOf(item[2]));
-                chatItems.add(new ChatItem(item[0], item[1], new Time(calendar)));
             }
+
+            //check if item contains emoji      ---     This is for backwards compatibility.
+            String emoji = "";
+            if (item.length == 4){
+                emoji = item[3];
+            }
+
+            chatItems.add(new ChatItem(item[0], item[1], new Time(calendar), emoji));
         }
 
 
         //Add new item to chatItems
-        chatItems.add(new ChatItem(username, message, time));
+        chatItems.add(new ChatItem(username, message, time, userEmoji));
 
 
         //save amount of chats

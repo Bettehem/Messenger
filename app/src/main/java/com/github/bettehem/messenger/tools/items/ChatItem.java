@@ -7,10 +7,12 @@ public class ChatItem {
     public String name;
     public String message;
     public Time time;
+    public String emoji;
 
-    public ChatItem(String name, String message, Time time) {
+    public ChatItem(String name, String message, Time time, String emoji) {
         this.name = name;
         this.message = message;
         this.time = time;
+        this.emoji = emoji;
     }
 }
