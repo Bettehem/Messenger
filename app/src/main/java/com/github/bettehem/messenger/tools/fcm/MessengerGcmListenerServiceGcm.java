@@ -1,9 +1,11 @@
 package com.github.bettehem.messenger.tools.fcm;
 
+import android.content.Intent;
 import android.os.Handler;
 
 import com.github.bettehem.androidtools.Preferences;
 import com.github.bettehem.androidtools.misc.Time;
+import com.github.bettehem.messenger.MainActivity;
 import com.github.bettehem.messenger.tools.background.ReceivedMessage;
 import com.github.bettehem.messenger.tools.background.RequestResponse;
 import com.github.bettehem.messenger.tools.items.MessageItem;
@@ -103,8 +105,11 @@ public class MessengerGcmListenerServiceGcm extends FirebaseMessagingService imp
 
     @Override
     public void onMessageReceived(Sender senderData, String message, String messageId) {
+        Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+        intent.putExtra("type", "message");
+        intent.putExtra("username", senderData.userName);
         //show a notification
-        notification(getApplicationContext(), "Messenger - " + senderData.userName, message, senderData.isSecretMessage);
+        notification(getApplicationContext(), "Messenger - " + senderData.userName, message, senderData.isSecretMessage, intent);
         //save message
         if (messageId != null){
             ChatsManager.saveMessage(getApplicationContext(), senderData.userName, new MessageItem(message, messageId, new Time(Calendar.getInstance()), false));

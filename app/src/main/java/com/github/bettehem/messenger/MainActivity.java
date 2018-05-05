@@ -1,6 +1,7 @@
 package com.github.bettehem.messenger;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Looper;
 import android.support.annotation.NonNull;
@@ -99,7 +100,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         checkIfProfileExists();
 
-        checkExtras();
+        checkExtras(getIntent());
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        checkExtras(intent);
     }
 
     private void setup(){
@@ -486,11 +493,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         t.start();
     }
 
-    private void checkExtras(){
-        if (getIntent().hasExtra("type")){
-            switch (getIntent().getExtras().getString("type")){
+    private void checkExtras(Intent intent){
+        if (intent.hasExtra("type")){
+            switch (intent.getExtras().getString("type")){
                 case "chatRequest":
-                    ChatsManager.openChatScreen(this, getIntent().getExtras().getString("username"), "chatRequest", R.id.mainFrameLayout, getSupportFragmentManager(), this);
+                    ChatsManager.openChatScreen(this, intent.getExtras().getString("username"), "chatRequest", R.id.mainFrameLayout, getSupportFragmentManager(), this);
+                    break;
+
+                case "message":
+                    ChatsManager.openChatScreen(this, intent.getExtras().getString("username"), "normal", R.id.mainFrameLayout, getSupportFragmentManager(), this);
                     break;
             }
         }
