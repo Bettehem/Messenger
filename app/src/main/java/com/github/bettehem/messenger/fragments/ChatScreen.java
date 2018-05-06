@@ -222,7 +222,7 @@ public class ChatScreen extends Fragment implements View.OnClickListener, Messag
                 messageAdapter.setMessageItems(items);
                 messageRecycler.scrollToPosition(items.size() - 1);
             }
-            ChatsManager.editChatItem(context, username, items.get(items.size() - 1).mMessage, items.get(items.size() - 1).mTime);
+            ChatsManager.editChatItem(context, username, "", items.get(items.size() - 1).mMessage, items.get(items.size() - 1).mTime);
         }catch (Exception e){
             e.printStackTrace();
         }
