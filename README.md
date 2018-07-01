@@ -1,3 +1,6 @@
+
+## **This project has been discontinued. There's a new project based on this, called SecureMessengerAndroid, and can be found at https://gitlab.com/Bettehem/SecureMessengerAndroid** 
+
 # Messenger
 An android messenger that only needs a username. Also, there's encryption.
 Available on Google Play store for download: https://play.google.com/store/apps/details?id=com.github.bettehem.messenger
